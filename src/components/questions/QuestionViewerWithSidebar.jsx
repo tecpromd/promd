@@ -5,8 +5,8 @@ const QuestionViewerWithSidebar = ({ question, onNext, onPrevious, currentIndex,
   const [showExplanation, setShowExplanation] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleAnswerSelect = (alternativeId) => {
-    setSelectedAnswer(alternativeId);
+  const handleAnswerSelect = (optionId) => {
+    setSelectedAnswer(optionId);
   };
 
   const handleConfirmAnswer = () => {
@@ -21,22 +21,22 @@ const QuestionViewerWithSidebar = ({ question, onNext, onPrevious, currentIndex,
     if (onNext) onNext();
   };
 
-  const getAlternativeStyle = (alternative) => {
+  const getOptionStyle = (option) => {
     if (!showExplanation) {
       return {
-        backgroundColor: selectedAnswer === alternative.id ? '#dbeafe' : 'white',
-        borderColor: selectedAnswer === alternative.id ? '#3b82f6' : '#e5e7eb',
-        color: selectedAnswer === alternative.id ? '#1e40af' : '#374151'
+        backgroundColor: selectedAnswer === option.id ? '#dbeafe' : 'white',
+        borderColor: selectedAnswer === option.id ? '#3b82f6' : '#e5e7eb',
+        color: selectedAnswer === option.id ? '#1e40af' : '#374151'
       };
     }
 
-    if (alternative.is_correct) {
+    if (option.isCorrect) {
       return {
         backgroundColor: '#dcfce7',
         borderColor: '#16a34a',
         color: '#166534'
       };
-    } else if (selectedAnswer === alternative.id) {
+    } else if (selectedAnswer === option.id) {
       return {
         backgroundColor: '#fee2e2',
         borderColor: '#dc2626',
@@ -51,6 +51,10 @@ const QuestionViewerWithSidebar = ({ question, onNext, onPrevious, currentIndex,
     }
   };
 
+  // Garantir que temos as opções corretas
+  const options = question.options || [];
+  const correctOption = options.find(opt => opt.isCorrect);
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Área Principal da Questão */}
@@ -63,9 +67,9 @@ const QuestionViewerWithSidebar = ({ question, onNext, onPrevious, currentIndex,
             </h2>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">
-                {question.discipline_id && (
+                {question.category && (
                   <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                    {question.discipline_id}
+                    {question.category}
                   </span>
                 )}
               </span>
@@ -86,21 +90,25 @@ const QuestionViewerWithSidebar = ({ question, onNext, onPrevious, currentIndex,
           {/* Título da Questão */}
           <div className="bg-white rounded-lg p-6 mb-6 shadow-sm border">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              {question.title}
+              {question.title || `Questão ${question.id?.slice(0, 8) || currentIndex + 1}`}
             </h3>
             
             {/* Texto da Questão */}
             <div className="text-gray-700 leading-relaxed mb-6">
-              {question.question_text || question.question}
+              {question.question}
             </div>
 
             {/* Imagem da Questão */}
-            {question.image_url && (
+            {question.image && (
               <div className="flex justify-center mb-6">
                 <img 
-                  src={question.image_url} 
+                  src={question.image} 
                   alt="Imagem da questão"
                   className="max-w-full max-h-64 object-contain rounded-lg shadow-md border"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    console.log('Erro ao carregar imagem:', question.image);
+                  }}
                 />
               </div>
             )}
@@ -112,36 +120,43 @@ const QuestionViewerWithSidebar = ({ question, onNext, onPrevious, currentIndex,
               Selecione a alternativa correta:
             </h4>
             
-            <div className="space-y-3">
-              {question.alternatives && question.alternatives.map((alternative, index) => (
-                <button
-                  key={alternative.id || index}
-                  onClick={() => handleAnswerSelect(alternative.id || index)}
-                  disabled={showExplanation}
-                  className="w-full text-left p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed"
-                  style={getAlternativeStyle(alternative)}
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="font-bold text-lg">
-                      {alternative.letter || String.fromCharCode(65 + index)}
-                    </span>
-                    <span className="flex-1">
-                      {alternative.text}
-                    </span>
-                    {showExplanation && alternative.is_correct && (
-                      <span className="text-green-600 font-bold">✓</span>
-                    )}
-                    {showExplanation && !alternative.is_correct && selectedAnswer === alternative.id && (
-                      <span className="text-red-600 font-bold">✗</span>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
+            {options.length > 0 ? (
+              <div className="space-y-3">
+                {options.map((option, index) => (
+                  <button
+                    key={option.id || index}
+                    onClick={() => handleAnswerSelect(option.id || index)}
+                    disabled={showExplanation}
+                    className="w-full text-left p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed"
+                    style={getOptionStyle(option)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="font-bold text-lg min-w-[24px]">
+                        {option.letter || String.fromCharCode(65 + index)})
+                      </span>
+                      <span className="flex-1">
+                        {option.text}
+                      </span>
+                      {showExplanation && option.isCorrect && (
+                        <span className="text-green-600 font-bold text-xl">✓</span>
+                      )}
+                      {showExplanation && !option.isCorrect && selectedAnswer === (option.id || index) && (
+                        <span className="text-red-600 font-bold text-xl">✗</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>Nenhuma alternativa disponível para esta questão.</p>
+                <p className="text-sm mt-2">Verifique se as opções foram carregadas corretamente do banco de dados.</p>
+              </div>
+            )}
           </div>
 
           {/* Botão Confirmar */}
-          {selectedAnswer && !showExplanation && (
+          {selectedAnswer !== null && !showExplanation && options.length > 0 && (
             <div className="text-center mb-6">
               <button
                 onClick={handleConfirmAnswer}
@@ -199,64 +214,73 @@ const QuestionViewerWithSidebar = ({ question, onNext, onPrevious, currentIndex,
 
           {/* Conteúdo do Sidebar */}
           <div className="flex-1 overflow-auto p-6">
-            {/* Resposta Correta */}
-            <div className="mb-6">
-              <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg mb-4">
-                <h4 className="font-semibold text-green-800 mb-2">
-                  ✅ Resposta Correta
-                </h4>
-                <p className="text-green-700 text-sm">
-                  {question.alternatives?.find(alt => alt.is_correct)?.letter || 'B'}) {question.alternatives?.find(alt => alt.is_correct)?.text}
-                </p>
-              </div>
-              
-              <div className="bg-white border rounded-lg p-4">
-                <h5 className="font-medium text-gray-800 mb-2">Por que está correta:</h5>
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  {question.explanation || question.alternatives?.find(alt => alt.is_correct)?.explanation || 
-                   "Esta é a resposta correta baseada nos achados clínicos e evidências apresentadas no caso."}
-                </p>
-              </div>
-            </div>
-
-            {/* Alternativas Incorretas */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-gray-800 border-b pb-2">
-                ❌ Por que as outras estão erradas:
-              </h4>
-              
-              {question.alternatives?.filter(alt => !alt.is_correct).map((alternative, index) => (
-                <div key={alternative.id || index} className="bg-red-50 border-l-4 border-red-300 rounded-r-lg">
-                  <div className="p-4">
-                    <h5 className="font-medium text-red-800 mb-2">
-                      {alternative.letter}) {alternative.text}
-                    </h5>
-                    <p className="text-red-700 text-sm leading-relaxed">
-                      {alternative.explanation || 
-                       `Esta alternativa está incorreta porque não corresponde aos achados clínicos apresentados no caso.`}
+            {correctOption ? (
+              <>
+                {/* Resposta Correta */}
+                <div className="mb-6">
+                  <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg mb-4">
+                    <h4 className="font-semibold text-green-800 mb-2">
+                      ✅ Resposta Correta
+                    </h4>
+                    <p className="text-green-700 text-sm">
+                      {correctOption.letter || 'A'}) {correctOption.text}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white border rounded-lg p-4">
+                    <h5 className="font-medium text-gray-800 mb-2">Por que está correta:</h5>
+                    <p className="text-gray-700 text-sm leading-relaxed">
+                      {correctOption.explanation || 
+                       "Esta é a resposta correta baseada nos achados clínicos e evidências apresentadas no caso."}
                     </p>
                   </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Informações Adicionais */}
-            {question.metadata && (
-              <div className="mt-6 bg-blue-50 rounded-lg p-4">
-                <h5 className="font-medium text-blue-800 mb-2">📚 Informações Adicionais:</h5>
-                <div className="text-blue-700 text-sm space-y-1">
-                  {question.metadata.source && (
-                    <p><strong>Fonte:</strong> {question.metadata.source}</p>
-                  )}
-                  {question.metadata.year && (
-                    <p><strong>Ano:</strong> {question.metadata.year}</p>
-                  )}
-                  {question.metadata.difficulty && (
-                    <p><strong>Dificuldade:</strong> {question.metadata.difficulty}</p>
-                  )}
+                {/* Alternativas Incorretas */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-800 border-b pb-2">
+                    ❌ Por que as outras estão erradas:
+                  </h4>
+                  
+                  {options.filter(opt => !opt.isCorrect).map((option, index) => (
+                    <div key={option.id || index} className="bg-red-50 border-l-4 border-red-300 rounded-r-lg">
+                      <div className="p-4">
+                        <h5 className="font-medium text-red-800 mb-2">
+                          {option.letter || String.fromCharCode(66 + index)}) {option.text}
+                        </h5>
+                        <p className="text-red-700 text-sm leading-relaxed">
+                          {option.explanation || 
+                           `Esta alternativa está incorreta porque não corresponde aos achados clínicos apresentados no caso.`}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              </>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>Explicações não disponíveis para esta questão.</p>
               </div>
             )}
+
+            {/* Informações Adicionais */}
+            <div className="mt-6 bg-blue-50 rounded-lg p-4">
+              <h5 className="font-medium text-blue-800 mb-2">📚 Informações Adicionais:</h5>
+              <div className="text-blue-700 text-sm space-y-1">
+                {question.source && (
+                  <p><strong>Fonte:</strong> {question.source}</p>
+                )}
+                {question.category && (
+                  <p><strong>Categoria:</strong> {question.category}</p>
+                )}
+                {question.difficulty && (
+                  <p><strong>Dificuldade:</strong> {question.difficulty}</p>
+                )}
+                {question.tags && question.tags.length > 0 && (
+                  <p><strong>Tags:</strong> {question.tags.join(', ')}</p>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Footer do Sidebar */}
