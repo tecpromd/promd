@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useFlashcardsLocal } from '../hooks/useFlashcardsLocal'
+import React, { useState } from 'react'
+import { useFlashcards } from '../hooks/useFlashcards'
 import { FlashcardFormLocal } from '../components/flashcards/FlashcardFormLocal'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/
 import { Plus, Search, BookOpen, HardDrive, Trash2, Edit } from 'lucide-react'
 
 export const FlashcardsLocal = () => {
-  const { flashcards, loading, createFlashcard, updateFlashcard, deleteFlashcard } = useFlashcardsLocal()
+  const { flashcards, loading, createFlashcard, updateFlashcard, deleteFlashcard } = useFlashcards()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingFlashcard, setEditingFlashcard] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')

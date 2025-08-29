@@ -62,6 +62,7 @@ const adminNavigation = [
 export const Layout = ({ children }) => {
   const { user, profile, signOut, isAdmin } = useAuth()
   const { theme, setTheme } = useTheme()
+  const { currentLanguage, changeLanguage, availableLanguages, t } = useLanguage()
   const location = useLocation()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
@@ -94,15 +95,14 @@ export const Layout = ({ children }) => {
         <Sidebar className="border-r bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
           <SidebarHeader className="border-b p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">P</span>
-              </div>
+              <img 
+                src="/logo-promd-official.png" 
+                alt="ProMD Logo" 
+                className="h-12 w-auto object-contain"
+              />
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                  ProMD
-                </h1>
                 <p className="text-xs text-muted-foreground">
-                  Validação Médica
+                  Plataforma de Validação Médica
                 </p>
               </div>
             </div>
@@ -240,19 +240,19 @@ export const Layout = ({ children }) => {
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="gap-2">
                       <Globe className="h-4 w-4" />
-                      🇧🇷 PT
+                      {availableLanguages.find(lang => lang.code === currentLanguage)?.flag} {availableLanguages.find(lang => lang.code === currentLanguage)?.name.slice(0, 2).toUpperCase()}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      🇧🇷 Português
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      🇺🇸 English
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      🇪🇸 Español
-                    </DropdownMenuItem>
+                    {availableLanguages.map((language) => (
+                      <DropdownMenuItem 
+                        key={language.code}
+                        onClick={() => changeLanguage(language.code)}
+                        className={currentLanguage === language.code ? 'bg-accent' : ''}
+                      >
+                        {language.flag} {language.name}
+                      </DropdownMenuItem>
+                    ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
 

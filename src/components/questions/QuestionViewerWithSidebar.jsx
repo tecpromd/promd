@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getQuestionExplanations } from '../../data/questionExplanations';
 
 const QuestionViewerWithSidebar = ({ question, onNext, onPrevious, currentIndex, total }) => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -214,73 +215,92 @@ const QuestionViewerWithSidebar = ({ question, onNext, onPrevious, currentIndex,
 
           {/* Conteúdo do Sidebar */}
           <div className="flex-1 overflow-auto p-6">
-            {correctOption ? (
-              <>
-                {/* Resposta Correta */}
-                <div className="mb-6">
-                  <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg mb-4">
-                    <h4 className="font-semibold text-green-800 mb-2">
-                      ✅ Resposta Correta
-                    </h4>
-                    <p className="text-green-700 text-sm">
-                      {correctOption.letter || 'A'}) {correctOption.text}
+            {(() => {
+              const explanations = getQuestionExplanations(question.id);
+              
+              if (!explanations) {
+                return (
+                  <div className="text-center py-8">
+                    <div className="text-gray-400 mb-4">
+                      <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-500 text-sm">
+                      Explicações não disponíveis para esta questão.
                     </p>
+                    <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                      <h5 className="font-medium text-blue-800 mb-2">📚 Informações Adicionais:</h5>
+                      <div className="text-sm text-blue-700 space-y-1">
+                        <p><strong>Fonte:</strong> {question.source || 'ProMD'}</p>
+                        <p><strong>Categoria:</strong> {question.category || 'Medicina Geral'}</p>
+                        <p><strong>Dificuldade:</strong> {question.difficulty || 'medium'}</p>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className="bg-white border rounded-lg p-4">
-                    <h5 className="font-medium text-gray-800 mb-2">Por que está correta:</h5>
-                    <p className="text-gray-700 text-sm leading-relaxed">
-                      {correctOption.explanation || 
-                       "Esta é a resposta correta baseada nos achados clínicos e evidências apresentadas no caso."}
-                    </p>
-                  </div>
-                </div>
+                );
+              }
 
-                {/* Alternativas Incorretas */}
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-800 border-b pb-2">
-                    ❌ Por que as outras estão erradas:
-                  </h4>
-                  
-                  {options.filter(opt => !opt.isCorrect).map((option, index) => (
-                    <div key={option.id || index} className="bg-red-50 border-l-4 border-red-300 rounded-r-lg">
-                      <div className="p-4">
-                        <h5 className="font-medium text-red-800 mb-2">
-                          {option.letter || String.fromCharCode(66 + index)}) {option.text}
-                        </h5>
-                        <p className="text-red-700 text-sm leading-relaxed">
-                          {option.explanation || 
-                           `Esta alternativa está incorreta porque não corresponde aos achados clínicos apresentados no caso.`}
+              const correctOption = Object.entries(explanations).find(([letter, data]) => data.isCorrect);
+              const incorrectOptions = Object.entries(explanations).filter(([letter, data]) => !data.isCorrect);
+
+              return (
+                <>
+                  {/* Resposta Correta */}
+                  {correctOption && (
+                    <div className="mb-6">
+                      <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg mb-4">
+                        <h4 className="font-semibold text-green-800 mb-2">
+                          ✅ Resposta Correta
+                        </h4>
+                        <p className="text-green-700 text-sm">
+                          {correctOption[0]}) {correctOption[1].text}
+                        </p>
+                      </div>
+                      
+                      <div className="bg-white border rounded-lg p-4">
+                        <h5 className="font-medium text-gray-800 mb-2">Por que está correta:</h5>
+                        <p className="text-gray-700 text-sm leading-relaxed">
+                          {correctOption[1].explanation}
                         </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <p>Explicações não disponíveis para esta questão.</p>
-              </div>
-            )}
+                  )}
 
-            {/* Informações Adicionais */}
-            <div className="mt-6 bg-blue-50 rounded-lg p-4">
-              <h5 className="font-medium text-blue-800 mb-2">📚 Informações Adicionais:</h5>
-              <div className="text-blue-700 text-sm space-y-1">
-                {question.source && (
-                  <p><strong>Fonte:</strong> {question.source}</p>
-                )}
-                {question.category && (
-                  <p><strong>Categoria:</strong> {question.category}</p>
-                )}
-                {question.difficulty && (
-                  <p><strong>Dificuldade:</strong> {question.difficulty}</p>
-                )}
-                {question.tags && question.tags.length > 0 && (
-                  <p><strong>Tags:</strong> {question.tags.join(', ')}</p>
-                )}
-              </div>
-            </div>
+                  {/* Alternativas Incorretas */}
+                  {incorrectOptions.length > 0 && (
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-gray-800 border-b pb-2">
+                        ❌ Por que as outras estão erradas:
+                      </h4>
+                      
+                      {incorrectOptions.map(([letter, data]) => (
+                        <div key={letter} className="bg-red-50 border-l-4 border-red-300 rounded-r-lg">
+                          <div className="p-4">
+                            <h5 className="font-medium text-red-800 mb-2">
+                              {letter}) {data.text}
+                            </h5>
+                            <p className="text-red-700 text-sm leading-relaxed">
+                              {data.explanation}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Informações Adicionais */}
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h5 className="font-medium text-blue-800 mb-2">📚 Informações Adicionais:</h5>
+                    <div className="text-sm text-blue-700 space-y-1">
+                      <p><strong>Fonte:</strong> {question.source || 'ProMD'}</p>
+                      <p><strong>Categoria:</strong> {question.category || 'Medicina Geral'}</p>
+                      <p><strong>Dificuldade:</strong> {question.difficulty || 'medium'}</p>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
           {/* Footer do Sidebar */}

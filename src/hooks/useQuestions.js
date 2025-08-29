@@ -63,12 +63,8 @@ export function useQuestions() {
       console.error('❌ Erro ao carregar questões:', err);
       setError(err.message);
       
-      // Fallback para localStorage se houver erro
-      const stored = localStorage.getItem('promd_questions');
-      if (stored) {
-        console.log('📦 Usando dados do localStorage como fallback');
-        setQuestions(JSON.parse(stored));
-      }
+      // NÃO usar localStorage - apenas dados reais do Supabase
+      setQuestions([]);
     } finally {
       setLoading(false);
     }
