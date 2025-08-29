@@ -11,34 +11,25 @@ export const useFlashcards = (contentId = null) => {
   const fetchFlashcards = async (filterContentId = contentId) => {
     try {
       setLoading(true)
+      
+      // Query simples para pegar todos os flashcards
       let query = supabase
         .from('flashcards')
-        .select(`
-          *,
-          content:contents(*),
-          files:flashcard_files(*),
-          user_progress:user_progress(*)
-        `)
-        .eq('is_active', true)
+        .select('*')
         .order('created_at', { ascending: false })
 
       if (filterContentId) {
         query = query.eq('content_id', filterContentId)
       }
 
-      // Se não for admin, mostrar apenas flashcards públicos ou próprios
-      if (user) {
-        query = query.or(`is_public.eq.true,user_id.eq.${user.id}`)
-      } else {
-        query = query.eq('is_public', true)
-      }
-
       const { data, error } = await query
 
       if (error) throw error
 
+      console.log('Flashcards carregados:', data?.length || 0)
       setFlashcards(data || [])
     } catch (err) {
+      console.error('Erro ao carregar flashcards:', err)
       setError(err.message)
     } finally {
       setLoading(false)

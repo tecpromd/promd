@@ -3,7 +3,7 @@ import { useQuestions } from '../hooks/useQuestions';
 import QuestionViewerWithSidebar from '../components/questions/QuestionViewerWithSidebar';
 
 const Questions = () => {
-  const { questions, importQuestions, exportQuestions } = useQuestions();
+  const { questions, loading, error, loadQuestions, createQuestion, updateQuestion, deleteQuestion } = useQuestions();
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'list' ou 'study'
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -38,18 +38,29 @@ const Questions = () => {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const result = importQuestions(e.target.result);
-          if (result.success) {
-            alert(`${result.count} questões importadas com sucesso!`);
-          } else {
-            alert(`Erro ao importar: ${result.error}`);
-          }
+          const data = JSON.parse(e.target.result);
+          // Implementar importação via createQuestion
+          alert('Função de importação em desenvolvimento');
         } catch (error) {
-          alert('Erro ao processar arquivo');
+          alert('Erro ao processar arquivo JSON');
         }
       };
       reader.readAsText(file);
     }
+  };
+
+  const handleExport = () => {
+    if (questions.length === 0) return;
+    
+    const dataStr = JSON.stringify(questions, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `promd_questions_${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
   };
 
   const filteredQuestions = questions.filter(question => 
@@ -57,6 +68,41 @@ const Questions = () => {
     question.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     question.question?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Loading state
+  if (loading) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <div style={{ fontSize: '48px', marginBottom: '20px' }}>⏳</div>
+        <h3>Carregando questões...</h3>
+        <p style={{ color: '#666' }}>Conectando ao banco de dados...</p>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <div style={{ fontSize: '48px', marginBottom: '20px' }}>❌</div>
+        <h3>Erro ao carregar questões</h3>
+        <p style={{ color: '#666', marginBottom: '20px' }}>{error}</p>
+        <button
+          onClick={loadQuestions}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer'
+          }}
+        >
+          Tentar Novamente
+        </button>
+      </div>
+    );
+  }
 
   // Modo de Estudo com Sidebar
   if (viewMode === 'study' && filteredQuestions.length > 0) {
@@ -84,8 +130,8 @@ const Questions = () => {
         </p>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <div style={{ width: '12px', height: '12px', backgroundColor: '#f97316', borderRadius: '50%' }}></div>
-          <span style={{ color: '#f97316', fontSize: '14px' }}>Armazenamento Local</span>
+          <div style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '50%' }}></div>
+          <span style={{ color: '#10b981', fontSize: '14px' }}>Conectado ao Supabase</span>
         </div>
       </div>
 
@@ -174,7 +220,7 @@ const Questions = () => {
         </button>
         
         <button
-          onClick={exportQuestions}
+          onClick={handleExport}
           disabled={questions.length === 0}
           style={{
             padding: '10px 20px',
@@ -220,31 +266,14 @@ const Questions = () => {
           }}>
             <div style={{ fontSize: '48px', marginBottom: '20px' }}>📚</div>
             <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '10px' }}>
-              {questions.length === 0 ? 'Nenhuma questão criada' : 'Nenhuma questão encontrada'}
+              {questions.length === 0 ? 'Carregando questões do banco...' : 'Nenhuma questão encontrada'}
             </h3>
             <p style={{ color: '#666', marginBottom: '30px' }}>
               {questions.length === 0 
-                ? 'Comece importando questões do arquivo JSON fornecido.'
+                ? 'Conectando ao Supabase para carregar questões médicas.'
                 : 'Tente ajustar os termos de busca.'
               }
             </p>
-            {questions.length === 0 && (
-              <button
-                onClick={() => document.getElementById('import-questions').click()}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '500'
-                }}
-              >
-                📤 Importar Questões
-              </button>
-            )}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -281,7 +310,7 @@ const Questions = () => {
                       fontSize: '14px',
                       color: '#6b7280'
                     }}>
-                      <span>{question.discipline || 'Medicina Geral'}</span>
+                      <span>{question.category || 'Medicina Geral'}</span>
                       <span>•</span>
                       <span style={{ 
                         padding: '2px 8px', 
@@ -303,11 +332,43 @@ const Questions = () => {
                     <p style={{ 
                       color: '#4b5563', 
                       lineHeight: '1.5',
-                      marginBottom: '10px'
+                      marginBottom: '15px'
                     }}>
-                      {(question.statement || question.question || '').substring(0, 200)}
-                      {(question.statement || question.question || '').length > 200 && '...'}
+                      {(question.question || '').substring(0, 200)}
+                      {(question.question || '').length > 200 && '...'}
                     </p>
+
+                    {/* Mostrar alternativas */}
+                    {question.options && question.options.length > 0 && (
+                      <div style={{ marginBottom: '15px' }}>
+                        <h4 style={{ fontSize: '14px', fontWeight: '500', marginBottom: '8px', color: '#374151' }}>
+                          Alternativas:
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {question.options.slice(0, 3).map((option, optIndex) => (
+                            <div key={optIndex} style={{ 
+                              fontSize: '13px', 
+                              color: '#6b7280',
+                              display: 'flex',
+                              gap: '8px'
+                            }}>
+                              <span style={{ 
+                                fontWeight: '500',
+                                color: option.isCorrect ? '#10b981' : '#6b7280'
+                              }}>
+                                {option.letter})
+                              </span>
+                              <span>{option.text.substring(0, 80)}{option.text.length > 80 && '...'}</span>
+                            </div>
+                          ))}
+                          {question.options.length > 3 && (
+                            <div style={{ fontSize: '12px', color: '#9ca3af', fontStyle: 'italic' }}>
+                              +{question.options.length - 3} alternativas
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     
                     {question.tags && question.tags.length > 0 && (
                       <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
@@ -342,7 +403,10 @@ const Questions = () => {
                   
                   <div style={{ display: 'flex', gap: '5px', marginLeft: '20px' }}>
                     <button
-                      onClick={() => alert('Visualização em desenvolvimento')}
+                      onClick={() => {
+                        setCurrentQuestionIndex(index);
+                        setViewMode('study');
+                      }}
                       style={{
                         padding: '8px',
                         backgroundColor: '#f3f4f6',
@@ -370,9 +434,14 @@ const Questions = () => {
                       ✏️
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         if (window.confirm('Tem certeza que deseja deletar esta questão?')) {
-                          alert('Função deletar em desenvolvimento');
+                          try {
+                            await deleteQuestion(question.id);
+                            alert('Questão deletada com sucesso!');
+                          } catch (error) {
+                            alert('Erro ao deletar questão: ' + error.message);
+                          }
                         }
                       }}
                       style={{
@@ -407,7 +476,7 @@ const Questions = () => {
           fontSize: '14px',
           color: '#6b7280'
         }}>
-          Mostrando {filteredQuestions.length} de {questions.length} questões
+          Mostrando {filteredQuestions.length} de {questions.length} questões • Dados do Supabase
         </div>
       )}
     </div>

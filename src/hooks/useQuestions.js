@@ -1,256 +1,199 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
-// Hook para gerenciar banco de questões usando localStorage
-export const useQuestions = () => {
+export function useQuestions() {
   const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Carregar questões do localStorage na inicialização
+  // Carregar questões do Supabase com JOIN das alternativas
+  const loadQuestions = async () => {
+    try {
+      console.log('🔍 Carregando questões do Supabase...');
+      setLoading(true);
+      setError(null);
+
+      // Query com JOIN para pegar questões e suas alternativas
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('questions')
+        .select(`
+          *,
+          question_options (
+            id,
+            option_letter,
+            option_text,
+            is_correct,
+            explanation
+          )
+        `)
+        .order('created_at', { ascending: true });
+
+      if (questionsError) {
+        console.error('❌ Erro ao carregar questões:', questionsError);
+        throw questionsError;
+      }
+
+      console.log('✅ Questões carregadas:', questionsData?.length || 0);
+      
+      // Transformar dados para formato esperado pelo frontend
+      const formattedQuestions = questionsData?.map(question => ({
+        id: question.id,
+        title: question.title || `Questão ${question.id.slice(0, 8)}`,
+        question: question.question_text,
+        image: question.question_image_url,
+        options: question.question_options?.map(opt => ({
+          id: opt.id,
+          letter: opt.option_letter,
+          text: opt.option_text,
+          isCorrect: opt.is_correct,
+          explanation: opt.explanation
+        })) || [],
+        category: question.category || 'Medicina Geral',
+        difficulty: question.difficulty || 'medium',
+        source: question.source || 'ProMD',
+        tags: question.tags || [],
+        created_at: question.created_at,
+        updated_at: question.updated_at
+      })) || [];
+
+      setQuestions(formattedQuestions);
+      console.log('✅ Questões formatadas:', formattedQuestions.length);
+      
+    } catch (err) {
+      console.error('❌ Erro ao carregar questões:', err);
+      setError(err.message);
+      
+      // Fallback para localStorage se houver erro
+      const stored = localStorage.getItem('promd_questions');
+      if (stored) {
+        console.log('📦 Usando dados do localStorage como fallback');
+        setQuestions(JSON.parse(stored));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Criar nova questão
+  const createQuestion = async (questionData) => {
+    try {
+      console.log('➕ Criando nova questão...');
+      
+      // Inserir questão principal
+      const { data: newQuestion, error: questionError } = await supabase
+        .from('questions')
+        .insert([{
+          title: questionData.title,
+          question_text: questionData.question,
+          question_image_url: questionData.image,
+          category: questionData.category,
+          difficulty: questionData.difficulty,
+          source: questionData.source,
+          tags: questionData.tags
+        }])
+        .select()
+        .single();
+
+      if (questionError) throw questionError;
+
+      // Inserir alternativas
+      if (questionData.options && questionData.options.length > 0) {
+        const optionsToInsert = questionData.options.map(option => ({
+          question_id: newQuestion.id,
+          option_letter: option.letter,
+          option_text: option.text,
+          is_correct: option.isCorrect,
+          explanation: option.explanation
+        }));
+
+        const { error: optionsError } = await supabase
+          .from('question_options')
+          .insert(optionsToInsert);
+
+        if (optionsError) throw optionsError;
+      }
+
+      console.log('✅ Questão criada com sucesso');
+      await loadQuestions(); // Recarregar lista
+      
+      return newQuestion;
+    } catch (err) {
+      console.error('❌ Erro ao criar questão:', err);
+      throw err;
+    }
+  };
+
+  // Atualizar questão
+  const updateQuestion = async (id, questionData) => {
+    try {
+      console.log('📝 Atualizando questão:', id);
+      
+      const { error } = await supabase
+        .from('questions')
+        .update({
+          title: questionData.title,
+          question_text: questionData.question,
+          question_image_url: questionData.image,
+          category: questionData.category,
+          difficulty: questionData.difficulty,
+          source: questionData.source,
+          tags: questionData.tags,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      console.log('✅ Questão atualizada com sucesso');
+      await loadQuestions(); // Recarregar lista
+      
+    } catch (err) {
+      console.error('❌ Erro ao atualizar questão:', err);
+      throw err;
+    }
+  };
+
+  // Deletar questão
+  const deleteQuestion = async (id) => {
+    try {
+      console.log('🗑️ Deletando questão:', id);
+      
+      // Deletar alternativas primeiro (devido à foreign key)
+      await supabase
+        .from('question_options')
+        .delete()
+        .eq('question_id', id);
+
+      // Deletar questão
+      const { error } = await supabase
+        .from('questions')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      console.log('✅ Questão deletada com sucesso');
+      await loadQuestions(); // Recarregar lista
+      
+    } catch (err) {
+      console.error('❌ Erro ao deletar questão:', err);
+      throw err;
+    }
+  };
+
+  // Carregar questões ao montar o componente
   useEffect(() => {
     loadQuestions();
   }, []);
-
-  const loadQuestions = () => {
-    try {
-      const stored = localStorage.getItem('promd_questions');
-      if (stored) {
-        setQuestions(JSON.parse(stored));
-      }
-    } catch (err) {
-      console.error('Erro ao carregar questões:', err);
-      setError('Erro ao carregar questões');
-    }
-  };
-
-  const saveQuestions = (newQuestions) => {
-    try {
-      localStorage.setItem('promd_questions', JSON.stringify(newQuestions));
-      setQuestions(newQuestions);
-    } catch (err) {
-      console.error('Erro ao salvar questões:', err);
-      setError('Erro ao salvar questões');
-    }
-  };
-
-  const createQuestion = async (questionData) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const newQuestion = {
-        id: Date.now().toString(),
-        ...questionData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        user_id: 'local_user',
-        attempts: 0,
-        correct_attempts: 0,
-        last_attempt: null,
-        difficulty_rating: questionData.difficulty || 'Intermediário'
-      };
-
-      const updatedQuestions = [...questions, newQuestion];
-      saveQuestions(updatedQuestions);
-      
-      setLoading(false);
-      return { data: newQuestion, error: null };
-    } catch (err) {
-      setLoading(false);
-      setError('Erro ao criar questão');
-      return { data: null, error: err.message };
-    }
-  };
-
-  const updateQuestion = async (id, updates) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      const updatedQuestions = questions.map(question => 
-        question.id === id 
-          ? { ...question, ...updates, updated_at: new Date().toISOString() }
-          : question
-      );
-      
-      saveQuestions(updatedQuestions);
-      setLoading(false);
-      return { data: updatedQuestions.find(question => question.id === id), error: null };
-    } catch (err) {
-      setLoading(false);
-      setError('Erro ao atualizar questão');
-      return { data: null, error: err.message };
-    }
-  };
-
-  const deleteQuestion = async (id) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      const updatedQuestions = questions.filter(question => question.id !== id);
-      saveQuestions(updatedQuestions);
-      
-      setLoading(false);
-      return { error: null };
-    } catch (err) {
-      setLoading(false);
-      setError('Erro ao deletar questão');
-      return { error: err.message };
-    }
-  };
-
-  const recordAttempt = async (questionId, isCorrect) => {
-    const question = questions.find(q => q.id === questionId);
-    if (!question) return { error: 'Questão não encontrada' };
-
-    const updates = {
-      attempts: question.attempts + 1,
-      correct_attempts: question.correct_attempts + (isCorrect ? 1 : 0),
-      last_attempt: new Date().toISOString(),
-      last_attempt_correct: isCorrect
-    };
-
-    return await updateQuestion(questionId, updates);
-  };
-
-  const getQuestionsByDiscipline = (disciplineId) => {
-    return questions.filter(question => question.discipline_id === disciplineId);
-  };
-
-  const getQuestionsByContent = (contentId) => {
-    return questions.filter(question => question.content_id === contentId);
-  };
-
-  const getQuestionsByDifficulty = (difficulty) => {
-    return questions.filter(question => question.difficulty === difficulty);
-  };
-
-  const getQuestionsByType = (type) => {
-    return questions.filter(question => question.type === type);
-  };
-
-  const searchQuestions = (query) => {
-    const lowercaseQuery = query.toLowerCase();
-    return questions.filter(question => 
-      question.title?.toLowerCase().includes(lowercaseQuery) ||
-      question.statement?.toLowerCase().includes(lowercaseQuery) ||
-      question.explanation?.toLowerCase().includes(lowercaseQuery) ||
-      question.alternatives?.some(alt => alt.text?.toLowerCase().includes(lowercaseQuery))
-    );
-  };
-
-  const getRandomQuestions = (count, filters = {}) => {
-    let filteredQuestions = [...questions];
-
-    // Aplicar filtros
-    if (filters.discipline_id) {
-      filteredQuestions = filteredQuestions.filter(q => q.discipline_id === filters.discipline_id);
-    }
-    if (filters.difficulty) {
-      filteredQuestions = filteredQuestions.filter(q => q.difficulty === filters.difficulty);
-    }
-    if (filters.type) {
-      filteredQuestions = filteredQuestions.filter(q => q.type === filters.type);
-    }
-
-    // Embaralhar e retornar quantidade solicitada
-    const shuffled = filteredQuestions.sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count);
-  };
-
-  const getQuestionStats = () => {
-    const total = questions.length;
-    const byDifficulty = questions.reduce((acc, question) => {
-      acc[question.difficulty] = (acc[question.difficulty] || 0) + 1;
-      return acc;
-    }, {});
-    
-    const byDiscipline = questions.reduce((acc, question) => {
-      acc[question.discipline_id] = (acc[question.discipline_id] || 0) + 1;
-      return acc;
-    }, {});
-
-    const byType = questions.reduce((acc, question) => {
-      acc[question.type] = (acc[question.type] || 0) + 1;
-      return acc;
-    }, {});
-
-    const attempted = questions.filter(question => question.attempts > 0).length;
-    const totalAttempts = questions.reduce((sum, question) => sum + question.attempts, 0);
-    const totalCorrect = questions.reduce((sum, question) => sum + question.correct_attempts, 0);
-    const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
-
-    return {
-      total,
-      attempted,
-      accuracy,
-      totalAttempts,
-      totalCorrect,
-      byDifficulty,
-      byDiscipline,
-      byType
-    };
-  };
-
-  const clearAllQuestions = () => {
-    localStorage.removeItem('promd_questions');
-    setQuestions([]);
-  };
-
-  const exportQuestions = () => {
-    const dataStr = JSON.stringify(questions, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `promd_questions_${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const importQuestions = (jsonData) => {
-    try {
-      const importedQuestions = JSON.parse(jsonData);
-      if (Array.isArray(importedQuestions)) {
-        const mergedQuestions = [...questions, ...importedQuestions];
-        saveQuestions(mergedQuestions);
-        return { success: true, count: importedQuestions.length };
-      }
-      return { success: false, error: 'Formato inválido' };
-    } catch (err) {
-      return { success: false, error: 'Erro ao importar dados' };
-    }
-  };
 
   return {
     questions,
     loading,
     error,
+    loadQuestions,
     createQuestion,
     updateQuestion,
-    deleteQuestion,
-    recordAttempt,
-    getQuestionsByDiscipline,
-    getQuestionsByContent,
-    getQuestionsByDifficulty,
-    getQuestionsByType,
-    searchQuestions,
-    getRandomQuestions,
-    getQuestionStats,
-    clearAllQuestions,
-    exportQuestions,
-    importQuestions,
-    refreshQuestions: loadQuestions
+    deleteQuestion
   };
-};
-
-export default useQuestions;
+}
 
