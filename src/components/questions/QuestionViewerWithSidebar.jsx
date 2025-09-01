@@ -100,15 +100,34 @@ const QuestionViewerWithSidebar = ({ question, onNext, onPrevious, currentIndex,
             </div>
 
             {/* Imagem da Questão */}
-            {question.image && (
+            {question.question_image_url && (
               <div className="flex justify-center mb-6">
                 <img 
-                  src={question.image} 
+                  src={question.question_image_url} 
                   alt="Imagem da questão"
-                  className="max-w-full max-h-64 object-contain rounded-lg shadow-md border"
+                  className="max-w-full max-h-64 object-contain rounded-lg shadow-md border cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => {
+                    // Abrir imagem em modal para zoom
+                    const modal = document.createElement('div');
+                    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+                    modal.innerHTML = `
+                      <div class="relative max-w-full max-h-full p-4">
+                        <img src="${question.question_image_url}" alt="Imagem da questão" class="max-w-full max-h-full object-contain" />
+                        <button class="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75" onclick="this.parentElement.parentElement.remove()">
+                          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    `;
+                    document.body.appendChild(modal);
+                    modal.addEventListener('click', (e) => {
+                      if (e.target === modal) modal.remove();
+                    });
+                  }}
                   onError={(e) => {
                     e.target.style.display = 'none';
-                    console.log('Erro ao carregar imagem:', question.image);
+                    console.log('Erro ao carregar imagem:', question.question_image_url);
                   }}
                 />
               </div>

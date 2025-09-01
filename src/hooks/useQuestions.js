@@ -40,7 +40,8 @@ export function useQuestions() {
         id: question.id,
         title: question.title || `Questão ${question.id.slice(0, 8)}`,
         question: question.question_text,
-        image: question.question_image_url,
+        question_image_url: question.question_image_url, // Campo correto
+        image: question.question_image_url, // Manter compatibilidade
         options: question.question_options?.map(opt => ({
           id: opt.id,
           letter: opt.option_letter,
@@ -177,6 +178,37 @@ export function useQuestions() {
     }
   };
 
+  // Atualizar imagem da questão
+  const updateQuestionImage = async (questionId, imageUrl) => {
+    try {
+      console.log('🖼️ Atualizando imagem da questão:', questionId);
+      
+      const { data, error } = await supabase
+        .from('questions')
+        .update({ question_image_url: imageUrl })
+        .eq('id', questionId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Atualizar na lista local
+      setQuestions(prev => 
+        prev.map(question => 
+          question.id === questionId 
+            ? { ...question, image: imageUrl }
+            : question
+        )
+      );
+
+      console.log('✅ Imagem da questão atualizada');
+      return { data, error: null };
+    } catch (err) {
+      console.error('❌ Erro ao atualizar imagem da questão:', err);
+      return { data: null, error: err };
+    }
+  };
+
   // Carregar questões ao montar o componente
   useEffect(() => {
     loadQuestions();
@@ -189,7 +221,8 @@ export function useQuestions() {
     loadQuestions,
     createQuestion,
     updateQuestion,
-    deleteQuestion
+    deleteQuestion,
+    updateQuestionImage
   };
 }
 

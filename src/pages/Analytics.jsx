@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -6,76 +6,11 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
 import { TrendingUp, TrendingDown, Target, Clock, Award, Users, BookOpen, Brain } from 'lucide-react'
-import { useSupabase } from '@/hooks/useSupabase'
+import { useAnalytics } from '@/hooks/useAnalytics'
 
 export function Analytics() {
-  const { supabase } = useSupabase()
-  const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState('30d')
-  const [analytics, setAnalytics] = useState({
-    overview: {},
-    performance: [],
-    disciplines: [],
-    timeSpent: [],
-    accuracy: []
-  })
-
-  useEffect(() => {
-    loadAnalytics()
-  }, [timeRange])
-
-  const loadAnalytics = async () => {
-    try {
-      setLoading(true)
-      
-      // Dados de exemplo - em produção viria do Supabase
-      const mockData = {
-        overview: {
-          totalStudents: 1247,
-          totalQuestions: 3456,
-          avgAccuracy: 78.5,
-          totalStudyTime: 15420, // em minutos
-          completedExams: 892,
-          activeUsers: 234
-        },
-        performance: [
-          { month: 'Jan', accuracy: 72, questions: 450 },
-          { month: 'Fev', accuracy: 75, questions: 520 },
-          { month: 'Mar', accuracy: 78, questions: 680 },
-          { month: 'Abr', accuracy: 81, questions: 750 },
-          { month: 'Mai', accuracy: 79, questions: 690 },
-          { month: 'Jun', accuracy: 83, questions: 820 }
-        ],
-        disciplines: [
-          { name: 'Cardiologia', accuracy: 85, questions: 1200, color: '#EF4444' },
-          { name: 'Radiologia', accuracy: 78, questions: 980, color: '#3B82F6' },
-          { name: 'Neurologia', accuracy: 82, questions: 750, color: '#8B5CF6' },
-          { name: 'Pediatria', accuracy: 76, questions: 650, color: '#10B981' },
-          { name: 'Ginecologia', accuracy: 80, questions: 580, color: '#F59E0B' }
-        ],
-        timeSpent: [
-          { day: 'Seg', hours: 2.5 },
-          { day: 'Ter', hours: 3.2 },
-          { day: 'Qua', hours: 2.8 },
-          { day: 'Qui', hours: 3.5 },
-          { day: 'Sex', hours: 2.1 },
-          { day: 'Sáb', hours: 4.2 },
-          { day: 'Dom', hours: 3.8 }
-        ],
-        accuracy: [
-          { difficulty: 'Fácil', value: 92 },
-          { difficulty: 'Médio', value: 78 },
-          { difficulty: 'Difícil', value: 65 }
-        ]
-      }
-
-      setAnalytics(mockData)
-    } catch (error) {
-      console.error('Erro ao carregar analytics:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { analytics, loading, error } = useAnalytics(timeRange)
 
   const formatTime = (minutes) => {
     const hours = Math.floor(minutes / 60)
@@ -89,6 +24,17 @@ export function Analytics() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-red-600 mb-2">Erro ao carregar analytics</p>
+          <p className="text-sm text-gray-600">{error}</p>
+        </div>
       </div>
     )
   }
@@ -120,14 +66,14 @@ export function Analytics() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total de Estudantes</p>
-                <p className="text-2xl font-bold">{analytics.overview.totalStudents?.toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total de Flashcards</p>
+                <p className="text-2xl font-bold">{analytics.overview.totalFlashcards?.toLocaleString()}</p>
               </div>
-              <Users className="h-8 w-8 text-blue-600" />
+              <BookOpen className="h-8 w-8 text-blue-600" />
             </div>
             <div className="flex items-center mt-2">
               <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-              <span className="text-sm text-green-600">+12% vs mês anterior</span>
+              <span className="text-sm text-green-600">Crescendo constantemente</span>
             </div>
           </CardContent>
         </Card>
@@ -136,14 +82,14 @@ export function Analytics() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Questões Respondidas</p>
-                <p className="text-2xl font-bold">{analytics.overview.totalQuestions?.toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">Estudados Hoje</p>
+                <p className="text-2xl font-bold">{analytics.overview.studiedToday?.toLocaleString()}</p>
               </div>
-              <BookOpen className="h-8 w-8 text-green-600" />
+              <Target className="h-8 w-8 text-green-600" />
             </div>
             <div className="flex items-center mt-2">
               <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-              <span className="text-sm text-green-600">+8% vs mês anterior</span>
+              <span className="text-sm text-green-600">Meta: 20 flashcards</span>
             </div>
           </CardContent>
         </Card>
@@ -155,11 +101,11 @@ export function Analytics() {
                 <p className="text-sm font-medium text-muted-foreground">Precisão Média</p>
                 <p className="text-2xl font-bold">{analytics.overview.avgAccuracy}%</p>
               </div>
-              <Target className="h-8 w-8 text-purple-600" />
+              <Award className="h-8 w-8 text-purple-600" />
             </div>
             <div className="flex items-center mt-2">
               <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-              <span className="text-sm text-green-600">+3% vs mês anterior</span>
+              <span className="text-sm text-green-600">Baseado em avaliações</span>
             </div>
           </CardContent>
         </Card>
@@ -168,14 +114,14 @@ export function Analytics() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Tempo de Estudo</p>
-                <p className="text-2xl font-bold">{formatTime(analytics.overview.totalStudyTime)}</p>
+                <p className="text-sm font-medium text-muted-foreground">Sequência</p>
+                <p className="text-2xl font-bold">{analytics.overview.streak} dias</p>
               </div>
               <Clock className="h-8 w-8 text-orange-600" />
             </div>
             <div className="flex items-center mt-2">
-              <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
-              <span className="text-sm text-red-600">-5% vs mês anterior</span>
+              <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
+              <span className="text-sm text-green-600">Continue assim! 🔥</span>
             </div>
           </CardContent>
         </Card>

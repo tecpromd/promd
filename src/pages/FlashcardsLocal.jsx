@@ -1,18 +1,23 @@
 import React, { useState } from 'react'
 import { useFlashcards } from '../hooks/useFlashcards'
+import { useLanguage } from '../contexts/LanguageContext'
 import { FlashcardFormLocal } from '../components/flashcards/FlashcardFormLocal'
+import FlashcardGridView from '../components/flashcards/FlashcardGridView'
+import FlashcardListView from '../components/flashcards/FlashcardListView'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card, CardContent } from '../components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog'
-import { Plus, Search, BookOpen, HardDrive, Trash2, Edit } from 'lucide-react'
+import { Plus, Search, BookOpen, HardDrive, Trash2, Edit, Star, RotateCcw, Grid3X3, List } from 'lucide-react'
 
 export const FlashcardsLocal = () => {
-  const { flashcards, loading, createFlashcard, updateFlashcard, deleteFlashcard } = useFlashcards()
+  const { flashcards, loading, createFlashcard, updateFlashcard, deleteFlashcard, updateFlashcardImage } = useFlashcards()
+  const { t } = useLanguage()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingFlashcard, setEditingFlashcard] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [formLoading, setFormLoading] = useState(false)
+  const [viewMode, setViewMode] = useState('grid') // 'grid' ou 'list'
 
   const filteredFlashcards = flashcards.filter(flashcard =>
     flashcard.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -53,8 +58,21 @@ export const FlashcardsLocal = () => {
   }
 
   const handleDeleteFlashcard = async (id) => {
-    if (confirm('Tem certeza que deseja excluir este flashcard?')) {
+    if (window.confirm('Tem certeza que deseja excluir este flashcard?')) {
       await deleteFlashcard(id)
+    }
+  }
+
+  const handleImageUpdate = async (flashcardId, imageUrl) => {
+    try {
+      const { error } = await updateFlashcardImage(flashcardId, imageUrl)
+      if (error) {
+        console.error('Erro ao atualizar imagem:', error)
+        alert('Erro ao atualizar imagem. Tente novamente.')
+      }
+    } catch (err) {
+      console.error('Erro ao atualizar imagem:', err)
+      alert('Erro ao atualizar imagem. Tente novamente.')
     }
   }
 
@@ -66,6 +84,16 @@ export const FlashcardsLocal = () => {
   const closeForm = () => {
     setIsFormOpen(false)
     setEditingFlashcard(null)
+  }
+
+  const handleDifficultyRating = (flashcardId, difficulty) => {
+    console.log(`Flashcard ${flashcardId} avaliado como: ${difficulty}`)
+    // Aqui você pode implementar a lógica de repetição espaçada
+  }
+
+  const handleImageClick = (imageUrl) => {
+    // Abrir imagem em modal ou nova aba
+    window.open(imageUrl, '_blank')
   }
 
   return (
@@ -93,8 +121,8 @@ export const FlashcardsLocal = () => {
         </div>
       </div>
 
-      {/* Busca */}
-      <div className="flex items-center space-x-2">
+      {/* Busca e controles */}
+      <div className="flex items-center justify-between gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
@@ -104,14 +132,34 @@ export const FlashcardsLocal = () => {
             className="pl-10"
           />
         </div>
+        
+        {/* Toggle de visualização */}
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('grid')}
+            className="h-8 w-8 p-0"
+          >
+            <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+            className="h-8 w-8 p-0"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Lista de Flashcards */}
-      <div className="grid gap-4">
+      <div>
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-sm text-gray-600">Carregando flashcards...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Carregando flashcards...</p>
           </div>
         ) : filteredFlashcards.length === 0 ? (
           <Card>
@@ -123,7 +171,7 @@ export const FlashcardsLocal = () => {
               <p className="text-gray-600 text-center mb-4">
                 {searchQuery 
                   ? 'Tente ajustar sua busca ou criar um novo flashcard.'
-                  : 'Comece criando seu primeiro flashcard de estudo.'
+                  : 'Comece criando seu primeiro flashcard para estudar.'
                 }
               </p>
               {!searchQuery && (
@@ -134,55 +182,22 @@ export const FlashcardsLocal = () => {
               )}
             </CardContent>
           </Card>
+        ) : viewMode === 'grid' ? (
+          <FlashcardGridView
+            flashcards={filteredFlashcards}
+            onEdit={openEditForm}
+            onDelete={handleDeleteFlashcard}
+            onImageUpdate={handleImageUpdate}
+            showImageUpload={true}
+            showActions={true}
+          />
         ) : (
-          filteredFlashcards.map(flashcard => (
-            <Card key={flashcard.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-2">{flashcard.title}</h3>
-                    {flashcard.description && (
-                      <p className="text-gray-600 mb-3">{flashcard.description}</p>
-                    )}
-                    
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span>Dificuldade: {flashcard.difficulty}</span>
-                      {flashcard.tags && flashcard.tags.length > 0 && (
-                        <div className="flex gap-1">
-                          {flashcard.tags.slice(0, 3).map(tag => (
-                            <span key={tag} className="px-2 py-1 bg-gray-100 rounded text-xs">
-                              {tag}
-                            </span>
-                          ))}
-                          {flashcard.tags.length > 3 && (
-                            <span className="text-xs">+{flashcard.tags.length - 3}</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 ml-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditForm(flashcard)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteFlashcard(flashcard.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+          <FlashcardListView
+            flashcards={filteredFlashcards}
+            onEdit={openEditForm}
+            onDelete={handleDeleteFlashcard}
+            showActions={true}
+          />
         )}
       </div>
 

@@ -255,6 +255,32 @@ export const useFlashcards = (contentId = null) => {
     }
   }
 
+  const updateFlashcardImage = async (flashcardId, imageUrl) => {
+    try {
+      const { data, error } = await supabase
+        .from('flashcards')
+        .update({ image_url: imageUrl })
+        .eq('id', flashcardId)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Atualizar na lista local
+      setFlashcards(prev => 
+        prev.map(flashcard => 
+          flashcard.id === flashcardId 
+            ? { ...flashcard, image_url: imageUrl }
+            : flashcard
+        )
+      )
+
+      return { data, error: null }
+    } catch (err) {
+      return { data: null, error: err }
+    }
+  }
+
   const getFlashcardsByContent = async (contentId) => {
     try {
       let query = supabase
@@ -302,6 +328,7 @@ export const useFlashcards = (contentId = null) => {
     toggleFavorite,
     updateProgress,
     incrementViews,
+    updateFlashcardImage,
     getFlashcardsByContent
   }
 }

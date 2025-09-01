@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useDisciplines } from '../hooks/useDisciplines'
 import { useFlashcards } from '../hooks/useFlashcards'
+import { useAnalytics } from '../hooks/useAnalytics'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Badge } from '../components/ui/badge'
@@ -25,24 +26,7 @@ export const Dashboard = () => {
   const { profile } = useAuth()
   const { disciplines } = useDisciplines()
   const { flashcards } = useFlashcards()
-  const [stats, setStats] = useState({
-    totalFlashcards: 0,
-    studiedToday: 0,
-    weeklyProgress: 0,
-    favoriteCount: 0,
-    streak: 0
-  })
-
-  useEffect(() => {
-    // Calcular estatísticas
-    setStats({
-      totalFlashcards: flashcards.length,
-      studiedToday: Math.floor(Math.random() * 15) + 5, // Mock data
-      weeklyProgress: Math.floor(Math.random() * 40) + 60, // Mock data
-      favoriteCount: Math.floor(Math.random() * 10) + 3, // Mock data
-      streak: Math.floor(Math.random() * 10) + 1 // Mock data
-    })
-  }, [flashcards])
+  const { analytics, loading: analyticsLoading } = useAnalytics()
 
   const recentFlashcards = flashcards.slice(0, 3)
 
@@ -91,10 +75,14 @@ export const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-              {stats.totalFlashcards}
+              {analytics.overview.totalFlashcards}
             </div>
             <p className="text-xs text-blue-600 dark:text-blue-400">
-              +2 novos esta semana
+              +{flashcards.filter(f => {
+                const created = new Date(f.created_at);
+                const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                return created >= weekAgo;
+              }).length} novos esta semana
             </p>
           </CardContent>
         </Card>
@@ -106,7 +94,7 @@ export const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-700 dark:text-green-300">
-              {stats.studiedToday}
+              {analytics.overview.studiedToday}
             </div>
             <p className="text-xs text-green-600 dark:text-green-400">
               Meta: 20 flashcards
@@ -121,9 +109,9 @@ export const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">
-              {stats.weeklyProgress}%
+              {Math.round(analytics.overview.weeklyProgress)}%
             </div>
-            <Progress value={stats.weeklyProgress} className="mt-2" />
+            <Progress value={analytics.overview.weeklyProgress} className="mt-2" />
           </CardContent>
         </Card>
 
@@ -134,7 +122,7 @@ export const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-              {stats.streak} dias
+              {analytics.overview.streak} dias
             </div>
             <p className="text-xs text-purple-600 dark:text-purple-400">
               Continue assim! 🔥
@@ -157,30 +145,43 @@ export const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {disciplines.slice(0, 6).map((discipline) => {
-                const progress = Math.floor(Math.random() * 40) + 40 // Mock data
-                const studied = Math.floor(Math.random() * 20) + 5 // Mock data
-                
-                return (
-                  <div key={discipline.id} className="space-y-2">
+              {analyticsLoading ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-600">Carregando progresso...</p>
+                </div>
+              ) : analytics.disciplines.length > 0 ? (
+                analytics.disciplines.slice(0, 6).map((discipline, index) => (
+                  <div key={discipline.name} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div 
                           className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: discipline.color }}
+                          style={{ 
+                            backgroundColor: [
+                              '#EF4444', '#F97316', '#EAB308', '#22C55E', 
+                              '#3B82F6', '#8B5CF6', '#EC4899', '#06B6D4'
+                            ][index % 8] 
+                          }}
                         />
                         <span className="font-medium">{discipline.name}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{studied} estudados</span>
+                        <span>{discipline.studied} estudados</span>
                         <span>•</span>
-                        <span>{progress}%</span>
+                        <span>{Math.round(discipline.accuracy)}%</span>
                       </div>
                     </div>
-                    <Progress value={progress} className="h-2" />
+                    <Progress value={discipline.accuracy} className="h-2" />
                   </div>
-                )
-              })}
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Nenhum progresso ainda</p>
+                  <p className="text-xs">Comece estudando para ver seu progresso</p>
+                </div>
+              )}
               
               <Button variant="outline" className="w-full mt-4" asChild>
                 <Link to="/study">
@@ -203,33 +204,52 @@ export const Dashboard = () => {
               <CardDescription>
                 Seus últimos estudos
               </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            </CardHeader>            <CardContent className="space-y-4">
               <div className="space-y-3">
-                {[
-                  { action: 'Estudou', subject: 'ECG - Arritmias', time: '2h atrás', score: 85 },
-                  { action: 'Criou', subject: 'Radiologia Torácica', time: '5h atrás', score: null },
-                  { action: 'Estudou', subject: 'Anatomia Cardíaca', time: '1d atrás', score: 92 },
-                  { action: 'Favoritou', subject: 'Neurologia Básica', time: '2d atrás', score: null },
-                ].map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium">
-                        {activity.action} <span className="text-blue-600">{activity.subject}</span>
-                      </p>
-                      <p className="text-xs text-muted-foreground">{activity.time}</p>
-                    </div>
-                    {activity.score && (
-                      <Badge variant="secondary">
-                        {activity.score}%
-                      </Badge>
-                    )}
+                {analyticsLoading ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                    <p className="text-xs text-gray-600">Carregando atividades...</p>
                   </div>
-                ))}
+                ) : analytics.recentActivity.length > 0 ? (
+                  analytics.recentActivity.slice(0, 4).map((activity) => (
+                    <div key={activity.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full" />
+                        <div>
+                          <p className="text-sm font-medium">
+                            Estudou {activity.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {activity.discipline} • {new Date(activity.date).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+                      {activity.difficulty && (
+                        <Badge 
+                          variant={
+                            activity.difficulty === 'easy' ? 'default' : 
+                            activity.difficulty === 'medium' ? 'secondary' : 'destructive'
+                          }
+                          className="text-xs"
+                        >
+                          {activity.difficulty === 'easy' ? 'Fácil' : 
+                           activity.difficulty === 'medium' ? 'Médio' : 'Difícil'}
+                        </Badge>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Nenhuma atividade ainda</p>
+                    <p className="text-xs">Comece estudando para ver seu histórico</p>
+                  </div>
+                )}
               </div>
               
               <Button variant="outline" className="w-full" asChild>
-                <Link to="/profile">
+                <Link to="/analytics">
                   Ver Histórico Completo
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -239,7 +259,7 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Flashcards recentes */}
+      {/* Flashcards Recentes */}
       {recentFlashcards.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-6">

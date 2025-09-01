@@ -48,6 +48,7 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Flashcards', href: '/flashcards', icon: BookOpen },
+  { name: 'Modo Estudo', href: '/study-mode', icon: GraduationCap },
   { name: 'Estudar', href: '/study', icon: GraduationCap },
   { name: 'Banco de Questões', href: '/questions', icon: Database },
   { name: 'Modo Prova', href: '/exam', icon: FileText },

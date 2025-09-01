@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Dashboard } from './pages/Dashboard'
 import { FlashcardsLocal } from './pages/FlashcardsLocal'
+import { StudyMode } from './pages/StudyMode'
 import Study from './pages/Study'
 import { Admin } from './pages/Admin'
 import { Profile } from './pages/Profile'
@@ -44,6 +46,13 @@ function App() {
             <Route path="/flashcards" element={
               <Layout>
                 <FlashcardsLocal />
+              </Layout>
+            } />
+            
+            {/* Modo Estudo Focado */}
+            <Route path="/study-mode" element={
+              <Layout>
+                <StudyMode />
               </Layout>
             } />
             
