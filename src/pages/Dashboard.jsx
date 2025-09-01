@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
 import { useDisciplines } from '../hooks/useDisciplines'
 import { useFlashcards } from '../hooks/useFlashcards'
 import { useAnalytics } from '../hooks/useAnalytics'
@@ -24,6 +25,7 @@ import {
 
 export const Dashboard = () => {
   const { profile } = useAuth()
+  const { t } = useLanguage()
   const { disciplines } = useDisciplines()
   const { flashcards } = useFlashcards()
   const { analytics, loading: analyticsLoading } = useAnalytics()
@@ -43,10 +45,10 @@ export const Dashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-            {getGreeting()}, {profile?.name?.split(' ')[0] || 'Estudante'}!
+            {getGreeting()}, {profile?.name?.split(' ')[0] || t('student')}!
           </h1>
           <p className="text-muted-foreground mt-1">
-            Continue sua jornada de preparação para validação médica
+            {t('dashboard.subtitle')}
           </p>
         </div>
         

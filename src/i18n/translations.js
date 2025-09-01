@@ -53,6 +53,20 @@ export const translations = {
     medium: "Médio",
     hard: "Difícil",
     veryHard: "Muito Difícil",
+    student: "Estudante",
+    
+    // Dashboard
+    dashboard: {
+      subtitle: "Continue sua jornada de preparação para validação médica",
+      newFlashcard: "Novo Flashcard",
+      studyNow: "Estudar Agora",
+      totalFlashcards: "Total de Flashcards",
+      studiedToday: "Estudados Hoje",
+      weeklyProgress: "Progresso Semanal",
+      streak: "Sequência",
+      progressByDiscipline: "Progresso por Disciplina",
+      recentActivity: "Atividade Recente"
+    },
     
     // Ações
     create: "Criar",

@@ -17,9 +17,19 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // Função para upload de arquivos
 export const uploadFile = async (file, bucket = 'uploads', folder = '') => {
   try {
+    console.log('📤 Iniciando upload:', { 
+      fileName: file.name, 
+      fileSize: file.size, 
+      fileType: file.type,
+      bucket,
+      folder 
+    })
+
     const fileExt = file.name.split('.').pop()
     const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
     const filePath = folder ? `${folder}/${fileName}` : fileName
+
+    console.log('📁 Caminho do arquivo:', filePath)
 
     const { data, error } = await supabase.storage
       .from(bucket)
@@ -28,12 +38,19 @@ export const uploadFile = async (file, bucket = 'uploads', folder = '') => {
         upsert: false
       })
 
-    if (error) throw error
+    if (error) {
+      console.error('❌ Erro no upload:', error)
+      throw error
+    }
+
+    console.log('✅ Upload realizado:', data)
 
     // Obter URL pública do arquivo
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
       .getPublicUrl(filePath)
+
+    console.log('🔗 URL pública gerada:', publicUrl)
 
     return {
       path: data.path,
@@ -41,7 +58,7 @@ export const uploadFile = async (file, bucket = 'uploads', folder = '') => {
       fullPath: data.fullPath
     }
   } catch (error) {
-    console.error('Erro no upload:', error)
+    console.error('❌ Erro geral no upload:', error)
     throw error
   }
 }
