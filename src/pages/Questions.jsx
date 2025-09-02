@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useQuestions } from '../hooks/useQuestions';
-import QuestionViewerWithSidebar from '../components/questions/QuestionViewerWithSidebar';
+import EnhancedQuestionViewer from '../components/questions/EnhancedQuestionViewer';
+import DisciplineFilter from '../components/questions/DisciplineFilter';
 
 const Questions = () => {
   const { questions, loading, error, loadQuestions, createQuestion, updateQuestion, deleteQuestion } = useQuestions();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDiscipline, setSelectedDiscipline] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' ou 'study'
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
@@ -63,11 +65,18 @@ const Questions = () => {
     linkElement.click();
   };
 
-  const filteredQuestions = questions.filter(question => 
-    !searchQuery || 
-    question.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    question.question?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredQuestions = questions.filter(question => {
+    // Filtro por busca
+    const matchesSearch = !searchQuery || 
+      question.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      question.question?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Filtro por disciplina
+    const matchesDiscipline = !selectedDiscipline || 
+      question.discipline_id === selectedDiscipline;
+    
+    return matchesSearch && matchesDiscipline;
+  });
 
   // Loading state
   if (loading) {
@@ -104,10 +113,10 @@ const Questions = () => {
     );
   }
 
-  // Modo de Estudo com Sidebar
+  // Modo de Estudo com Enhanced Viewer
   if (viewMode === 'study' && filteredQuestions.length > 0) {
     return (
-      <QuestionViewerWithSidebar
+      <EnhancedQuestionViewer
         question={filteredQuestions[currentQuestionIndex]}
         onNext={handleNextQuestion}
         onPrevious={handlePreviousQuestion}
@@ -192,6 +201,13 @@ const Questions = () => {
             minWidth: '250px',
             flex: '1'
           }}
+        />
+
+        {/* Filtro por Disciplina */}
+        <DisciplineFilter
+          selectedDiscipline={selectedDiscipline}
+          onDisciplineChange={setSelectedDiscipline}
+          className="min-w-[200px]"
         />
 
         {/* Botões */}
@@ -299,7 +315,7 @@ const Questions = () => {
                       marginBottom: '10px',
                       color: '#1f2937'
                     }}>
-                      {question.title || `Questão ${index + 1}`}
+                      Questão {question.question_number || question.id}
                     </h3>
                     
                     <div style={{ 

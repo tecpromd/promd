@@ -58,6 +58,7 @@ const navigation = [
 
 const adminNavigation = [
   { name: 'Administração', href: '/admin', icon: Shield },
+  { name: 'CMS - Gerenciar Conteúdo', href: '/admin/cms', icon: Settings, description: 'Adicionar questões, flashcards e conteúdo' },
 ]
 
 export const Layout = ({ children }) => {

@@ -21,12 +21,12 @@ const ImageUpload = ({ onImageUploaded, currentImage, className = "" }) => {
     setUploading(true);
     try {
       console.log('🖼️ Fazendo upload de imagem...');
-      const result = await uploadFile(file, 'uploads', 'images/');
+      const result = await uploadFile(file, 'uploads', 'images');
       console.log('✅ Upload concluído:', result.url);
       onImageUploaded(result.url);
     } catch (error) {
       console.error('❌ Erro no upload:', error);
-      alert('Erro ao fazer upload da imagem. Tente novamente.');
+      alert(`Erro ao fazer upload da imagem: ${error.message}`);
     } finally {
       setUploading(false);
     }

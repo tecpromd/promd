@@ -15,7 +15,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 })
 
 // Função para upload de arquivos
-export const uploadFile = async (file, bucket = 'uploads', folder = '') => {
+export const uploadFile = async (file, bucket = 'uploads', folder = 'images') => {
   try {
     console.log('📤 Iniciando upload:', { 
       fileName: file.name, 
@@ -25,8 +25,21 @@ export const uploadFile = async (file, bucket = 'uploads', folder = '') => {
       folder 
     })
 
+    // Validações
+    if (!file) {
+      throw new Error('Arquivo não fornecido')
+    }
+
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Apenas arquivos de imagem são permitidos')
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error('Arquivo muito grande. Máximo 10MB.')
+    }
+
     const fileExt = file.name.split('.').pop()
-    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
+    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
     const filePath = folder ? `${folder}/${fileName}` : fileName
 
     console.log('📁 Caminho do arquivo:', filePath)
@@ -40,7 +53,7 @@ export const uploadFile = async (file, bucket = 'uploads', folder = '') => {
 
     if (error) {
       console.error('❌ Erro no upload:', error)
-      throw error
+      throw new Error(`Erro no upload: ${error.message}`)
     }
 
     console.log('✅ Upload realizado:', data)

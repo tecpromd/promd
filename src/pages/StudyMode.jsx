@@ -37,33 +37,44 @@ export const StudyMode = () => {
 
   // Filtrar flashcards baseado nos filtros selecionados
   useEffect(() => {
+    console.log('🔍 Aplicando filtros:', filters);
+    console.log('📚 Total flashcards:', flashcards.length);
+    
     let filtered = [...flashcards];
 
     if (filters.difficulty !== 'all') {
-      filtered = filtered.filter(card => 
-        card.difficulty === filters.difficulty || 
-        card.difficulty_level === parseInt(filters.difficulty)
-      );
-    }
-
-    if (filters.category !== 'all') {
-      filtered = filtered.filter(card => 
-        card.discipline?.toLowerCase().includes(filters.category.toLowerCase()) ||
-        card.category?.toLowerCase().includes(filters.category.toLowerCase())
-      );
-    }
-
-    if (filters.status !== 'all') {
-      // Filtrar por status de estudo (novo, revisão, dominado)
       filtered = filtered.filter(card => {
-        const progress = card.user_progress?.[0];
-        if (filters.status === 'new') return !progress;
-        if (filters.status === 'review') return progress && progress.next_review_date;
-        if (filters.status === 'mastered') return progress && progress.mastery_level >= 5;
-        return true;
+        const cardDifficulty = card.difficulty?.toLowerCase();
+        const filterDifficulty = filters.difficulty.toLowerCase();
+        return cardDifficulty === filterDifficulty;
       });
     }
 
+    if (filters.category !== 'all') {
+      filtered = filtered.filter(card => {
+        const cardTags = card.tags || [];
+        const cardCategory = card.category?.toLowerCase() || '';
+        const filterCategory = filters.category.toLowerCase();
+        
+        return cardTags.some(tag => tag.toLowerCase().includes(filterCategory)) ||
+               cardCategory.includes(filterCategory);
+      });
+    }
+
+    if (filters.status !== 'all') {
+      // Para status "new", mostrar todos os flashcards (já que não temos sistema de progresso ainda)
+      if (filters.status === 'new') {
+        // Manter todos os flashcards
+      } else {
+        // Para outros status, filtrar baseado em lógica futura
+        filtered = filtered.filter(card => {
+          // Por enquanto, mostrar todos para "review" e "mastered"
+          return true;
+        });
+      }
+    }
+
+    console.log('✅ Flashcards filtrados:', filtered.length);
     setFilteredFlashcards(filtered);
     setCurrentIndex(0);
   }, [flashcards, filters]);

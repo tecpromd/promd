@@ -37,56 +37,67 @@ export function useQuestions() {
       
       // Transformar dados para formato esperado pelo frontend
       const formattedQuestions = questionsData?.map(question => ({
-        id: question.id,
-        title: question.title || `Questão ${question.id.slice(0, 8)}`,
-        question: question.question_text,
-        question_image_url: question.question_image_url, // Campo correto
+        id: question.question_number || question.id, // Usar question_number como ID principal
+        uuid: question.id, // Manter UUID para operações no banco
+        question_number: question.question_number,
+        title: extractTitle(question.question_text),
+        question: extractQuestion(question.question_text),
+        question_image_url: question.question_image_url,
         image: question.question_image_url, // Manter compatibilidade
+        explanation: question.explanation,
+        difficulty: question.difficulty,
         options: question.question_options?.map(opt => ({
           id: opt.id,
           letter: opt.option_letter,
-          text: opt.option_text,
-          isCorrect: opt.is_correct,
+          option_text: opt.option_text,
+          is_correct: opt.is_correct,
           explanation: opt.explanation
         })) || [],
-        category: question.category || 'Medicina Geral',
-        difficulty: question.difficulty || 'medium',
-        source: question.source || 'ProMD',
-        tags: question.tags || [],
         created_at: question.created_at,
         updated_at: question.updated_at
       })) || [];
 
       setQuestions(formattedQuestions);
-      console.log('✅ Questões formatadas:', formattedQuestions.length);
-      
     } catch (err) {
       console.error('❌ Erro ao carregar questões:', err);
-      setError(err.message);
-      
-      // NÃO usar localStorage - apenas dados reais do Supabase
-      setQuestions([]);
+      setError(err.message || 'Erro ao carregar questões');
     } finally {
       setLoading(false);
     }
   };
+
+  // Função auxiliar para extrair título da question_text
+  const extractTitle = (questionText) => {
+    if (!questionText) return 'Questão sem título';
+    const lines = questionText.split('\n');
+    return lines[0] || 'Questão sem título';
+  };
+
+  // Função auxiliar para extrair pergunta da question_text
+  const extractQuestion = (questionText) => {
+    if (!questionText) return '';
+    const lines = questionText.split('\n');
+    return lines.slice(2).join('\n').trim(); // Pula título e linha vazia
+  };
+
+  // Carregar questões na inicialização
+  useEffect(() => {
+    loadQuestions();
+  }, []);
 
   // Criar nova questão
   const createQuestion = async (questionData) => {
     try {
       console.log('➕ Criando nova questão...');
       
-      // Inserir questão principal
       const { data: newQuestion, error: questionError } = await supabase
         .from('questions')
         .insert([{
-          title: questionData.title,
-          question_text: questionData.question,
+          question_text: `${questionData.title}\n\n${questionData.question}`,
           question_image_url: questionData.image,
-          category: questionData.category,
-          difficulty: questionData.difficulty,
-          source: questionData.source,
-          tags: questionData.tags
+          difficulty: questionData.difficulty || 'medium',
+          question_type: 'multiple_choice',
+          is_active: true
         }])
         .select()
         .single();

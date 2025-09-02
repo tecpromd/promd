@@ -10,11 +10,19 @@ import { Admin } from './pages/Admin'
 import { Profile } from './pages/Profile'
 import { ExamMode } from './pages/ExamMode'
 import Questions from './pages/Questions'
+import TestConfiguration from './pages/TestConfiguration'
+import TestExecution from './pages/TestExecution'
 import { Analytics } from './pages/Analytics'
 import { Achievements } from './pages/Achievements'
 import { Layout } from './components/Layout'
 import { ThemeProvider } from './components/ThemeProvider'
 import { LanguageProvider } from './contexts/LanguageContext'
+
+// Admin CMS Pages
+import AdminDashboard from './pages/admin/AdminDashboard'
+import QuestionManager from './pages/admin/QuestionManager'
+import FlashcardManager from './pages/admin/FlashcardManager'
+
 import './App.css'
 
 const queryClient = new QueryClient({
@@ -35,6 +43,11 @@ function App() {
         <ThemeProvider defaultTheme="light" storageKey="promd-theme">
           <Router>
           <Routes>
+            {/* CMS Admin Routes - Sem Layout principal */}
+            <Route path="/admin/cms" element={<AdminDashboard />} />
+            <Route path="/admin/cms/questions" element={<QuestionManager />} />
+            <Route path="/admin/cms/flashcards" element={<FlashcardManager />} />
+
             {/* Dashboard Principal */}
             <Route path="/" element={
               <Layout>
@@ -66,8 +79,25 @@ function App() {
             {/* Modo Prova Profissional */}
             <Route path="/exam" element={<ExamMode />} />
 
-            {/* Banco de Questões */}
+            {/* Banco de Questões - Redireciona para Configuração */}
             <Route path="/questions" element={
+              <Layout>
+                <TestConfiguration />
+              </Layout>
+            } />
+
+            {/* Configuração de Teste */}
+            <Route path="/test-configuration" element={
+              <Layout>
+                <TestConfiguration />
+              </Layout>
+            } />
+
+            {/* Execução de Teste */}
+            <Route path="/test-execution" element={<TestExecution />} />
+
+            {/* Visualização de Questões (antiga) */}
+            <Route path="/questions-view" element={
               <Layout>
                 <Questions />
               </Layout>
