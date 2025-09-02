@@ -14,7 +14,8 @@ import {
   Edit,
   Trash2,
   ArrowLeft,
-  Zap
+  Zap,
+  Tag
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -156,7 +157,7 @@ const AdminDashboard = () => {
             <p className="text-blue-100">Adicione conteúdo diretamente ao banco de dados</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Link
               to="/admin/cms/questions"
               className="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all transform hover:scale-105"
@@ -189,18 +190,37 @@ const AdminDashboard = () => {
               </div>
             </Link>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+            <Link
+              to="/admin/disciplines"
+              className="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all transform hover:scale-105"
+            >
               <div className="text-center">
                 <div className="bg-white/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <Upload className="w-8 h-8" />
+                  <BookOpen className="w-8 h-8" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">📤 Import em Lote</h3>
-                <p className="text-sm text-blue-100 mb-4">Upload de arquivos CSV/Excel</p>
+                <h3 className="text-lg font-semibold mb-2">🏥 Gerenciar Disciplinas</h3>
+                <p className="text-sm text-blue-100 mb-4">Criar e organizar disciplinas</p>
                 <div className="bg-white/20 rounded-lg p-2">
-                  <span className="text-xs font-medium">Em breve</span>
+                  <span className="text-xs font-medium">+ Nova Disciplina</span>
                 </div>
               </div>
-            </div>
+            </Link>
+
+            <Link
+              to="/admin/topics"
+              className="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all transform hover:scale-105"
+            >
+              <div className="text-center">
+                <div className="bg-white/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <Tag className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">📖 Gerenciar Temas</h3>
+                <p className="text-sm text-blue-100 mb-4">Criar e organizar temas</p>
+                <div className="bg-white/20 rounded-lg p-2">
+                  <span className="text-xs font-medium">+ Novo Tema</span>
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
 
