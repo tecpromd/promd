@@ -145,193 +145,222 @@ const DisciplineManager = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Link to="/admin/cms">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar ao CMS
-              </Button>
-            </Link>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-blue-600" />
-              Gerenciar Disciplinas
-            </h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-40">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236366f1' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }}></div>
+      </div>
+      
+      <div className="relative z-10 p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header Moderno */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-6">
+              <Link to="/admin/cms">
+                <button className="bg-white/70 backdrop-blur-sm hover:bg-white/90 text-slate-700 px-6 py-3 rounded-2xl font-medium shadow-lg border border-white/20 transition-all duration-300 hover:shadow-xl hover:scale-105 flex items-center gap-2">
+                  <ArrowLeft className="w-4 h-4" />
+                  Voltar ao CMS
+                </button>
+              </Link>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2 flex items-center gap-3">
+                  <BookOpen className="h-8 w-8 text-purple-600" />
+                  Disciplinas
+                </h1>
+                <p className="text-slate-600 text-lg font-medium">
+                  Gerencie as disciplinas médicas da plataforma
+                </p>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => setShowAddForm(true)}
+              className="group relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:-translate-y-1"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10 flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                Nova Disciplina
+              </div>
+            </button>
           </div>
-          
-          <Button 
-            onClick={() => setShowAddForm(true)}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Disciplina
-          </Button>
-        </div>
 
-        {/* Formulário de Adição/Edição */}
-        {showAddForm && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>
-                {editingId ? 'Editar Disciplina' : 'Nova Disciplina'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Nome da Disciplina</label>
-                    <Input
+          {/* Formulário de Adição/Edição */}
+          {showAddForm && (
+            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/30 mb-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                  {editingId ? '✏️ Editar Disciplina' : '➕ Nova Disciplina'}
+                </h2>
+                <p className="text-slate-600">
+                  {editingId ? 'Atualize as informações da disciplina' : 'Preencha os dados para criar uma nova disciplina'}
+                </p>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700">Nome da Disciplina</label>
+                    <input
+                      type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
                       placeholder="Ex: Cardiologia"
                       required
+                      className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-white/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
                     />
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Ícone</label>
-                    <Select 
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700">Ícone</label>
+                    <select 
                       value={formData.icon} 
-                      onValueChange={(value) => setFormData({...formData, icon: value})}
+                      onChange={(e) => setFormData({...formData, icon: e.target.value})}
+                      className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-white/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
                     >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {iconOptions.map(icon => (
-                          <SelectItem key={icon} value={icon}>
-                            {icon} {icon}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      {iconOptions.map(icon => (
+                        <option key={icon} value={icon}>
+                          {icon} {icon}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">Descrição</label>
-                  <Textarea
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700">Descrição</label>
+                  <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     placeholder="Descrição da disciplina..."
                     rows={3}
+                    className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-white/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 resize-none"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Cor</label>
-                    <div className="flex items-center gap-2">
-                      <Input
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700">Cor</label>
+                    <div className="flex items-center gap-3">
+                      <input
                         type="color"
                         value={formData.color}
                         onChange={(e) => setFormData({...formData, color: e.target.value})}
-                        className="w-16 h-10"
+                        className="w-16 h-12 rounded-xl border-2 border-white/30 cursor-pointer"
                       />
-                      <Input
+                      <input
+                        type="text"
                         value={formData.color}
                         onChange={(e) => setFormData({...formData, color: e.target.value})}
                         placeholder="#3B82F6"
+                        className="flex-1 px-4 py-3 bg-white/70 backdrop-blur-sm border border-white/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
                       />
                     </div>
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Ordem</label>
-                    <Input
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700">Ordem</label>
+                    <input
                       type="number"
                       value={formData.order_index}
                       onChange={(e) => setFormData({...formData, order_index: parseInt(e.target.value)})}
                       min="0"
+                      className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-white/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                    <Save className="h-4 w-4 mr-2" />
+                <div className="flex gap-4 pt-4">
+                  <button 
+                    type="submit" 
+                    className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
+                  >
+                    <Save className="h-4 w-4" />
                     {editingId ? 'Atualizar' : 'Criar'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    <X className="h-4 w-4 mr-2" />
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={resetForm}
+                    className="bg-white/70 backdrop-blur-sm text-slate-700 px-8 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 border border-white/30"
+                  >
+                    <X className="h-4 w-4" />
                     Cancelar
-                  </Button>
+                  </button>
                 </div>
               </form>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
 
-        {/* Lista de Disciplinas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {disciplines.map((discipline) => (
-            <Card key={discipline.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{discipline.icon}</span>
+          {/* Lista de Disciplinas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {disciplines.map((discipline) => (
+              <div key={discipline.id} className="group bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/30 hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:-translate-y-2">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-lg"
+                      style={{ backgroundColor: discipline.color + '20', border: `2px solid ${discipline.color}40` }}
+                    >
+                      {discipline.icon}
+                    </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{discipline.name}</h3>
-                      <p className="text-xs text-gray-500">Ordem: {discipline.order_index}</p>
+                      <h3 className="font-bold text-slate-900 text-lg">{discipline.name}</h3>
+                      <p className="text-xs text-slate-500 font-medium">Ordem: {discipline.order_index}</p>
                     </div>
                   </div>
                   <div 
-                    className="w-4 h-4 rounded-full border"
+                    className="w-6 h-6 rounded-full border-2 border-white shadow-lg"
                     style={{ backgroundColor: discipline.color }}
                   ></div>
                 </div>
                 
                 {discipline.description && (
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                  <p className="text-sm text-slate-600 mb-4 line-clamp-2 leading-relaxed">
                     {discipline.description}
                   </p>
                 )}
                 
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
+                <div className="flex gap-3">
+                  <button 
                     onClick={() => handleEdit(discipline)}
+                    className="flex-1 bg-blue-500/20 text-blue-700 py-2 px-4 rounded-xl font-medium hover:bg-blue-500/30 transition-all duration-300 flex items-center justify-center gap-2"
                   >
-                    <Edit className="h-3 w-3 mr-1" />
+                    <Edit className="h-4 w-4" />
                     Editar
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="text-red-600 hover:bg-red-50"
+                  </button>
+                  <button 
                     onClick={() => handleDelete(discipline.id)}
+                    className="flex-1 bg-red-500/20 text-red-700 py-2 px-4 rounded-xl font-medium hover:bg-red-500/30 transition-all duration-300 flex items-center justify-center gap-2"
                   >
-                    <Trash2 className="h-3 w-3 mr-1" />
+                    <Trash2 className="h-4 w-4" />
                     Excluir
-                  </Button>
+                  </button>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
 
-        {disciplines.length === 0 && (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          {disciplines.length === 0 && (
+            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-12 shadow-xl border border-white/30 text-center">
+              <BookOpen className="h-20 w-20 text-slate-400 mx-auto mb-6" />
+              <h3 className="text-2xl font-bold text-slate-800 mb-3">
                 Nenhuma disciplina encontrada
               </h3>
-              <p className="text-gray-600 mb-4">
-                Comece criando sua primeira disciplina.
+              <p className="text-slate-600 mb-6 text-lg">
+                Comece criando sua primeira disciplina médica.
               </p>
-              <Button onClick={() => setShowAddForm(true)}>
-                <Plus className="h-4 w-4 mr-2" />
+              <button 
+                onClick={() => setShowAddForm(true)}
+                className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-2 mx-auto"
+              >
+                <Plus className="h-5 w-5" />
                 Criar Primeira Disciplina
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

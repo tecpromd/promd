@@ -15,7 +15,9 @@ import {
   Trash2,
   ArrowLeft,
   Zap,
-  Tag
+  Tag,
+  Activity,
+  TrendingUp
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -57,262 +59,246 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando dashboard administrativo...</p>
+          <div className="relative">
+            <div className="w-20 h-20 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600 mx-auto mb-4"></div>
+            <div className="absolute inset-0 w-20 h-20 border-4 border-transparent rounded-full animate-ping border-t-blue-400 mx-auto"></div>
+          </div>
+          <p className="text-slate-600 font-medium text-lg">Carregando CMS ProMD...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <Link
-                to="/"
-                className="mr-4 p-2 text-gray-600 hover:text-gray-900 flex items-center"
-              >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Voltar ao Site
-              </Link>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">🎛️ CMS ProMD</h1>
-                <p className="text-gray-600">Sistema de Gerenciamento de Conteúdo - Adicione questões, flashcards e materiais</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                ✅ Sistema Ativo
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-40">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236366f1' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }}></div>
       </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <BookOpen className="w-8 h-8 text-blue-600" />
+      
+      <div className="relative z-10 p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header Moderno */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+                  CMS ProMD
+                </h1>
+                <p className="text-slate-600 text-lg font-medium">
+                  Sistema de Gerenciamento de Conteúdo
+                </p>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total de Questões</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.questions}</p>
-                <p className="text-xs text-gray-500">no banco de dados</p>
+              
+              <div className="flex items-center gap-4">
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border border-white/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-slate-700 font-medium">Sistema Online</span>
+                  </div>
+                </div>
+                
+                <Link to="/">
+                  <button className="bg-white/70 backdrop-blur-sm hover:bg-white/90 text-slate-700 px-6 py-3 rounded-2xl font-medium shadow-lg border border-white/20 transition-all duration-300 hover:shadow-xl hover:scale-105 flex items-center gap-2">
+                    <ArrowLeft className="w-4 h-4" />
+                    Voltar ao Site
+                  </button>
+                </Link>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <CreditCard className="w-8 h-8 text-green-600" />
+          {/* Estatísticas Modernas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg">
+                  <BookOpen className="w-7 h-7 text-white" />
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-slate-800">{stats.questions}</div>
+                  <div className="text-sm text-slate-500 font-medium">Questões</div>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total de Flashcards</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.flashcards}</p>
-                <p className="text-xs text-gray-500">no banco de dados</p>
+              <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full w-3/4"></div>
+              </div>
+            </div>
+
+            <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl shadow-lg">
+                  <CreditCard className="w-7 h-7 text-white" />
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-slate-800">{stats.flashcards}</div>
+                  <div className="text-sm text-slate-500 font-medium">Flashcards</div>
+                </div>
+              </div>
+              <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full w-4/5"></div>
+              </div>
+            </div>
+
+            <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg">
+                  <Database className="w-7 h-7 text-white" />
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-slate-800">{stats.disciplines}</div>
+                  <div className="text-sm text-slate-500 font-medium">Disciplinas</div>
+                </div>
+              </div>
+              <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full w-full"></div>
+              </div>
+            </div>
+
+            <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 hover:scale-105">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg">
+                  <Users className="w-7 h-7 text-white" />
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-slate-800">{stats.users}</div>
+                  <div className="text-sm text-slate-500 font-medium">Usuários</div>
+                </div>
+              </div>
+              <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-orange-500 to-orange-600 rounded-full w-1/4"></div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
-            <div className="flex items-center">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <Users className="w-8 h-8 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Disciplinas</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.disciplines}</p>
-                <p className="text-xs text-gray-500">organizadas</p>
-              </div>
+          {/* Ações Principais Modernas */}
+          <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/30 mb-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-slate-800 mb-3">
+                🚀 Gerenciamento de Conteúdo
+              </h2>
+              <p className="text-slate-600 text-lg">
+                Adicione e organize conteúdo diretamente no banco de dados
+              </p>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
-            <div className="flex items-center">
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <BarChart3 className="w-8 h-8 text-orange-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Usuários Ativos</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.users}</p>
-                <p className="text-xs text-gray-500">utilizando</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Ações Principais - Destaque */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg p-8 mb-8 text-white">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold mb-2">🚀 Ações Principais</h2>
-            <p className="text-blue-100">Adicione conteúdo diretamente ao banco de dados</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Link
-              to="/admin/cms/questions"
-              className="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all transform hover:scale-105"
-            >
-              <div className="text-center">
-                <div className="bg-white/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <BookOpen className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">📚 Gerenciar Questões</h3>
-                <p className="text-sm text-blue-100 mb-4">Adicionar, editar e organizar questões</p>
-                <div className="bg-white/20 rounded-lg p-2">
-                  <span className="text-xs font-medium">+ Nova Questão</span>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              to="/admin/cms/flashcards"
-              className="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all transform hover:scale-105"
-            >
-              <div className="text-center">
-                <div className="bg-white/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <CreditCard className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">🃏 Gerenciar Flashcards</h3>
-                <p className="text-sm text-blue-100 mb-4">Criar e organizar flashcards</p>
-                <div className="bg-white/20 rounded-lg p-2">
-                  <span className="text-xs font-medium">+ Novo Flashcard</span>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              to="/admin/disciplines"
-              className="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all transform hover:scale-105"
-            >
-              <div className="text-center">
-                <div className="bg-white/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <BookOpen className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">🏥 Gerenciar Disciplinas</h3>
-                <p className="text-sm text-blue-100 mb-4">Criar e organizar disciplinas</p>
-                <div className="bg-white/20 rounded-lg p-2">
-                  <span className="text-xs font-medium">+ Nova Disciplina</span>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              to="/admin/topics"
-              className="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all transform hover:scale-105"
-            >
-              <div className="text-center">
-                <div className="bg-white/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <Tag className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">📖 Gerenciar Temas</h3>
-                <p className="text-sm text-blue-100 mb-4">Criar e organizar temas</p>
-                <div className="bg-white/20 rounded-lg p-2">
-                  <span className="text-xs font-medium">+ Novo Tema</span>
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-
-        {/* Ações Rápidas */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-            <Zap className="w-6 h-6 mr-2 text-yellow-500" />
-            Ações Rápidas
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link
-              to="/admin/cms/questions"
-              className="flex items-center p-4 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all group"
-            >
-              <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                <Plus className="w-5 h-5 text-blue-600" />
-              </div>
-              <div className="ml-3">
-                <span className="font-medium text-gray-900">Nova Questão</span>
-                <p className="text-xs text-gray-500">Adicionar ao banco</p>
-              </div>
-            </Link>
             
-            <Link
-              to="/admin/cms/flashcards"
-              className="flex items-center p-4 border-2 border-green-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-all group"
-            >
-              <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                <Plus className="w-5 h-5 text-green-600" />
-              </div>
-              <div className="ml-3">
-                <span className="font-medium text-gray-900">Novo Flashcard</span>
-                <p className="text-xs text-gray-500">Criar flashcard</p>
-              </div>
-            </Link>
-            
-            <Link
-              to="/admin/cms/questions"
-              className="flex items-center p-4 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-all group"
-            >
-              <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                <Eye className="w-5 h-5 text-purple-600" />
-              </div>
-              <div className="ml-3">
-                <span className="font-medium text-gray-900">Ver Questões</span>
-                <p className="text-xs text-gray-500">Listar todas</p>
-              </div>
-            </Link>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Link
+                to="/admin/cms/questions"
+                className="group relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative z-10 text-center text-white">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 w-16 h-16 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <BookOpen className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">Questões</h3>
+                  <p className="text-blue-100 text-sm mb-6 leading-relaxed">
+                    Criar e gerenciar questões de múltipla escolha
+                  </p>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-xl py-3 px-4 font-semibold text-sm">
+                    + Nova Questão
+                  </div>
+                </div>
+              </Link>
 
-            <Link
-              to="/admin/cms/flashcards"
-              className="flex items-center p-4 border-2 border-orange-200 rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-all group"
-            >
-              <div className="p-2 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
-                <Eye className="w-5 h-5 text-orange-600" />
-              </div>
-              <div className="ml-3">
-                <span className="font-medium text-gray-900">Ver Flashcards</span>
-                <p className="text-xs text-gray-500">Listar todos</p>
-              </div>
-            </Link>
-          </div>
-        </div>
+              <Link
+                to="/admin/cms/flashcards"
+                className="group relative overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative z-10 text-center text-white">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 w-16 h-16 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <CreditCard className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">Flashcards</h3>
+                  <p className="text-emerald-100 text-sm mb-6 leading-relaxed">
+                    Criar e organizar flashcards de estudo
+                  </p>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-xl py-3 px-4 font-semibold text-sm">
+                    + Novo Flashcard
+                  </div>
+                </div>
+              </Link>
 
-        {/* Informações do Sistema */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">ℹ️ Informações do Sistema</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Como usar o CMS:</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Use "Gerenciar Questões" para adicionar questões individuais</li>
-                <li>• Use "Gerenciar Flashcards" para criar flashcards</li>
-                <li>• Todas as alterações são salvas diretamente no banco</li>
-                <li>• Use tags para organizar por disciplinas</li>
-              </ul>
+              <Link
+                to="/admin/disciplines"
+                className="group relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative z-10 text-center text-white">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 w-16 h-16 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Database className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">Disciplinas</h3>
+                  <p className="text-purple-100 text-sm mb-6 leading-relaxed">
+                    Organizar disciplinas médicas
+                  </p>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-xl py-3 px-4 font-semibold text-sm">
+                    + Nova Disciplina
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                to="/admin/topics"
+                className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-2"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative z-10 text-center text-white">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 w-16 h-16 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Tag className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">Temas</h3>
+                  <p className="text-orange-100 text-sm mb-6 leading-relaxed">
+                    Criar temas dentro das disciplinas
+                  </p>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-xl py-3 px-4 font-semibold text-sm">
+                    + Novo Tema
+                  </div>
+                </div>
+              </Link>
             </div>
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Status do Sistema:</h4>
-              <div className="space-y-2">
-                <div className="flex items-center text-sm">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  <span>Banco de dados: Conectado</span>
+          </div>
+
+          {/* Seção de Atividade Recente */}
+          <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/30">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <Activity className="w-6 h-6 text-blue-600" />
+                Atividade Recente
+              </h3>
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <TrendingUp className="w-4 h-4" />
+                <span>Últimas 24h</span>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-4 bg-white/50 rounded-2xl">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-blue-600" />
                 </div>
-                <div className="flex items-center text-sm">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  <span>Storage: Funcionando</span>
+                <div className="flex-1">
+                  <p className="font-medium text-slate-800">Sistema inicializado</p>
+                  <p className="text-sm text-slate-600">CMS ProMD está funcionando normalmente</p>
                 </div>
-                <div className="flex items-center text-sm">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  <span>CMS: Operacional</span>
+                <div className="text-sm text-slate-500">Agora</div>
+              </div>
+              
+              <div className="flex items-center gap-4 p-4 bg-white/50 rounded-2xl">
+                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                  <Database className="w-5 h-5 text-green-600" />
                 </div>
+                <div className="flex-1">
+                  <p className="font-medium text-slate-800">Banco de dados conectado</p>
+                  <p className="text-sm text-slate-600">Todas as tabelas estão funcionais</p>
+                </div>
+                <div className="text-sm text-slate-500">2 min</div>
               </div>
             </div>
           </div>
