@@ -1,0 +1,175 @@
+/* ProMD Official Theme - Cores do Press Kit */
+:root {
+  /* Cores Principais ProMD */
+  --promd-navy: #1e3a8a;        /* Azul principal do texto ProMD */
+  --promd-sky: #0ea5e9;         /* Azul claro do estetoscópio */
+  --promd-red: #ef4444;         /* Vermelho do ponto focal */
+  --promd-white: #ffffff;       /* Branco puro */
+  --promd-dark: #1e40af;        /* Azul escuro do mapa */
+  
+  /* Variações e Gradientes */
+  --promd-navy-light: #3b82f6;
+  --promd-navy-dark: #1e293b;
+  --promd-sky-light: #38bdf8;
+  --promd-sky-dark: #0284c7;
+  
+  /* Tons Neutros Complementares */
+  --promd-gray-50: #f8fafc;
+  --promd-gray-100: #f1f5f9;
+  --promd-gray-200: #e2e8f0;
+  --promd-gray-300: #cbd5e1;
+  --promd-gray-400: #94a3b8;
+  --promd-gray-500: #64748b;
+  --promd-gray-600: #475569;
+  --promd-gray-700: #334155;
+  --promd-gray-800: #1e293b;
+  --promd-gray-900: #0f172a;
+  
+  /* Gradientes Oficiais */
+  --promd-gradient-primary: linear-gradient(135deg, var(--promd-navy) 0%, var(--promd-sky) 100%);
+  --promd-gradient-accent: linear-gradient(135deg, var(--promd-sky) 0%, var(--promd-red) 100%);
+  --promd-gradient-subtle: linear-gradient(135deg, var(--promd-gray-50) 0%, var(--promd-gray-100) 100%);
+}
+
+/* Classes Utilitárias ProMD */
+.promd-bg-primary { background-color: var(--promd-navy); }
+.promd-bg-sky { background-color: var(--promd-sky); }
+.promd-bg-red { background-color: var(--promd-red); }
+.promd-bg-gradient { background: var(--promd-gradient-primary); }
+
+.promd-text-primary { color: var(--promd-navy); }
+.promd-text-sky { color: var(--promd-sky); }
+.promd-text-red { color: var(--promd-red); }
+
+.promd-border-primary { border-color: var(--promd-navy); }
+.promd-border-sky { border-color: var(--promd-sky); }
+
+/* Componentes Específicos */
+.promd-card {
+  background: var(--promd-white);
+  border: 1px solid var(--promd-gray-200);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.promd-button-primary {
+  background: var(--promd-gradient-primary);
+  color: var(--promd-white);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.promd-button-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+}
+
+.promd-button-secondary {
+  background: var(--promd-white);
+  color: var(--promd-navy);
+  border: 2px solid var(--promd-navy);
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.promd-button-secondary:hover {
+  background: var(--promd-navy);
+  color: var(--promd-white);
+}
+
+/* Flashcards 3D */
+.promd-flashcard {
+  perspective: 1000px;
+  width: 100%;
+  height: 200px;
+  cursor: pointer;
+}
+
+.promd-flashcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.6s ease-in-out;
+  transform-style: preserve-3d;
+}
+
+.promd-flashcard-inner.rotate-y-180 {
+  transform: rotateY(180deg) scaleX(-1);
+}
+
+.promd-flashcard-front,
+.promd-flashcard-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.promd-flashcard-front {
+  background: var(--promd-gradient-primary);
+  color: var(--promd-white);
+}
+
+.promd-flashcard-back {
+  background: var(--promd-white);
+  color: var(--promd-navy);
+  border: 2px solid var(--promd-sky);
+  transform: rotateY(180deg) scaleX(-1);
+}
+
+/* Animações */
+@keyframes promd-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.promd-pulse {
+  animation: promd-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Dark Mode Adaptations */
+.dark .promd-card {
+  background: var(--promd-gray-800);
+  border-color: var(--promd-gray-700);
+}
+
+.dark .promd-flashcard-back {
+  background: var(--promd-gray-800);
+  color: var(--promd-sky);
+  border-color: var(--promd-sky);
+}
+
+
+/* CSS 3D para Tailwind */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg) scaleX(-1);
+}
+
+.duration-600 {
+  transition-duration: 0.6s;
+}
+
