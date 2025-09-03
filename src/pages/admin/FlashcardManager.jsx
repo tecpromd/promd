@@ -30,7 +30,7 @@ const FlashcardManager = () => {
     answer: '',
     difficulty: 'easy',
     type: 'text',
-    tags: [],
+    tags: '',
     justification: '',
     image_url: ''
   });
@@ -84,12 +84,22 @@ const FlashcardManager = () => {
         return;
       }
 
+      // Preparar dados para inserção (ID será gerado automaticamente pelo banco)
+      const flashcardData = {
+        title: newFlashcard.title.trim(),
+        description: newFlashcard.description.trim(),
+        question: newFlashcard.question.trim(),
+        answer: newFlashcard.answer.trim(),
+        difficulty: newFlashcard.difficulty,
+        type: newFlashcard.type,
+        tags: newFlashcard.tags.trim() ? newFlashcard.tags.split(',').map(tag => tag.trim()) : [],
+        justification: newFlashcard.justification.trim(),
+        image_url: newFlashcard.image_url.trim() || null
+      };
+
       const { data, error } = await supabase
         .from('flashcards')
-        .insert([{
-          ...newFlashcard,
-          tags: newFlashcard.tags.length > 0 ? newFlashcard.tags : null
-        }])
+        .insert([flashcardData])
         .select()
         .single();
 
@@ -103,7 +113,7 @@ const FlashcardManager = () => {
         answer: '',
         difficulty: 'easy',
         type: 'text',
-        tags: [],
+        tags: '',
         justification: '',
         image_url: ''
       });

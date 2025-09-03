@@ -87,31 +87,54 @@ const QuestionManager = () => {
         return;
       }
 
-      if (!newQuestion.question_number) {
-        alert('Número da questão é obrigatório');
-        return;
+      // Validações específicas por tipo
+      if (newQuestion.question_type === 'multiple_choice') {
+        if (!newQuestion.option_a.trim() || !newQuestion.option_b.trim() || 
+            !newQuestion.option_c.trim() || !newQuestion.option_d.trim()) {
+          alert('Alternativas A, B, C e D são obrigatórias para múltipla escolha');
+          return;
+        }
       }
 
-      // Verificar se o número já existe
-      const { data: existingQuestion } = await supabase
+      // Gerar número automático da questão
+      const { data: lastQuestion } = await supabase
         .from('questions')
-        .select('id')
-        .eq('question_number', newQuestion.question_number)
+        .select('question_number')
+        .order('question_number', { ascending: false })
+        .limit(1)
         .single();
 
-      if (existingQuestion) {
-        alert('Já existe uma questão com este número');
-        return;
+      const nextQuestionNumber = lastQuestion ? lastQuestion.question_number + 1 : 100001;
+
+      // Preparar dados para inserção
+      const questionData = {
+        question_number: nextQuestionNumber,
+        question_text: newQuestion.question_text.trim(),
+        explanation: newQuestion.explanation.trim(),
+        difficulty: newQuestion.difficulty,
+        question_type: newQuestion.question_type,
+        tags: newQuestion.tags.trim() ? newQuestion.tags.split(',').map(tag => tag.trim()) : [],
+        question_image_url: newQuestion.question_image_url.trim() || null,
+        is_active: true
+      };
+
+      // Adicionar campos específicos por tipo
+      if (newQuestion.question_type === 'multiple_choice') {
+        questionData.option_a = newQuestion.option_a.trim();
+        questionData.option_b = newQuestion.option_b.trim();
+        questionData.option_c = newQuestion.option_c.trim();
+        questionData.option_d = newQuestion.option_d.trim();
+        questionData.option_e = newQuestion.option_e.trim() || null;
+        questionData.correct_answer = newQuestion.correct_answer;
+      } else if (newQuestion.question_type === 'true_false') {
+        questionData.correct_tf_answer = newQuestion.correct_tf_answer;
+      } else if (newQuestion.question_type === 'essay') {
+        questionData.sample_answer = newQuestion.sample_answer.trim() || null;
       }
 
       const { data, error } = await supabase
         .from('questions')
-        .insert([{
-          ...newQuestion,
-          question_number: parseInt(newQuestion.question_number),
-          tags: newQuestion.tags.length > 0 ? newQuestion.tags : null,
-          is_active: true
-        }])
+        .insert([questionData])
         .select()
         .single();
 
@@ -328,19 +351,6 @@ const QuestionManager = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Número da Questão *
-                  </label>
-                  <input
-                    type="number"
-                    value={newQuestion.question_number}
-                    onChange={(e) => setNewQuestion(prev => ({ ...prev, question_number: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Ex: 100001"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Texto da Questão *
                   </label>
                   <textarea
@@ -348,8 +358,11 @@ const QuestionManager = () => {
                     onChange={(e) => setNewQuestion(prev => ({ ...prev, question_text: e.target.value }))}
                     rows={6}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Digite o texto completo da questão com as alternativas..."
+                    placeholder="Digite o texto completo da questão..."
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 O número da questão será gerado automaticamente
+                  </p>
                 </div>
 
                 <div>
