@@ -26,6 +26,7 @@ import QuestionManager from './pages/admin/QuestionManager'
 import FlashcardManager from './pages/admin/FlashcardManager'
 import DisciplineManager from './pages/admin/DisciplineManager'
 import TopicManager from './pages/admin/TopicManager'
+import ContentMaterialManager from './pages/admin/ContentMaterialManager'
 
 import './App.css'
 
@@ -51,6 +52,7 @@ function App() {
             <Route path="/admin/cms" element={<AdminDashboard />} />
             <Route path="/admin/cms/questions" element={<QuestionManager />} />
             <Route path="/admin/cms/flashcards" element={<FlashcardManager />} />
+            <Route path="/admin/cms/content" element={<ContentMaterialManager />} />
             <Route path="/admin/disciplines" element={<DisciplineManager />} />
             <Route path="/admin/topics" element={<TopicManager />} />
 

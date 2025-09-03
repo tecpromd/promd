@@ -245,20 +245,20 @@ const AdminDashboard = () => {
               </Link>
 
               <Link
-                to="/admin/topics"
+                to="/admin/cms/content"
                 className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-2"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative z-10 text-center text-white">
                   <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 w-16 h-16 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Tag className="w-8 h-8" />
+                    <FileText className="w-8 h-8" />
                   </div>
-                  <h3 className="text-xl font-bold mb-3">Temas</h3>
+                  <h3 className="text-xl font-bold mb-3">Conteúdo</h3>
                   <p className="text-orange-100 text-sm mb-6 leading-relaxed">
-                    Criar temas dentro das disciplinas
+                    Reviews, High Yield Tips e materiais
                   </p>
                   <div className="bg-white/20 backdrop-blur-sm rounded-xl py-3 px-4 font-semibold text-sm">
-                    + Novo Tema
+                    + Novo Material
                   </div>
                 </div>
               </Link>
