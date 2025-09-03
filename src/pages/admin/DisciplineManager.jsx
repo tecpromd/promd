@@ -31,7 +31,8 @@ const DisciplineManager = () => {
     description: '',
     color: '#3B82F6',
     icon: '📚',
-    order_index: 0
+    order_index: 0,
+    topics: []
   });
 
   // Carregar disciplinas
@@ -63,19 +64,58 @@ const DisciplineManager = () => {
         // Atualizar disciplina existente
         const { error } = await supabase
           .from('disciplines')
-          .update(formData)
+          .update({
+            name: formData.name,
+            description: formData.description,
+            color: formData.color,
+            icon: formData.icon,
+            order_index: formData.order_index
+          })
           .eq('id', editingId);
 
         if (error) throw error;
         alert('Disciplina atualizada com sucesso!');
       } else {
         // Criar nova disciplina
-        const { error } = await supabase
+        const { data: disciplineData, error: disciplineError } = await supabase
           .from('disciplines')
-          .insert([formData]);
+          .insert([{
+            name: formData.name,
+            description: formData.description,
+            color: formData.color,
+            icon: formData.icon,
+            order_index: formData.order_index
+          }])
+          .select()
+          .single();
 
-        if (error) throw error;
-        alert('Disciplina criada com sucesso!');
+        if (disciplineError) throw disciplineError;
+
+        // Criar temas para a disciplina
+        if (formData.topics && formData.topics.length > 0) {
+          const topicsToInsert = formData.topics
+            .filter(topic => topic.trim() !== '')
+            .map((topic, index) => ({
+              name: topic.trim(),
+              discipline: disciplineData.name,
+              color: formData.color,
+              icon: formData.icon,
+              is_active: true
+            }));
+
+          if (topicsToInsert.length > 0) {
+            const { error: topicsError } = await supabase
+              .from('topics')
+              .insert(topicsToInsert);
+
+            if (topicsError) {
+              console.error('Erro ao criar temas:', topicsError);
+              alert('Disciplina criada, mas houve erro ao criar alguns temas: ' + topicsError.message);
+            }
+          }
+        }
+
+        alert('Disciplina e temas criados com sucesso!');
       }
 
       resetForm();
@@ -122,7 +162,8 @@ const DisciplineManager = () => {
       description: '',
       color: '#3B82F6',
       icon: '📚',
-      order_index: 0
+      order_index: 0,
+      topics: []
     });
     setEditingId(null);
     setShowAddForm(false);
@@ -269,6 +310,55 @@ const DisciplineManager = () => {
                       min="0"
                       className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-white/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
                     />
+                  </div>
+                </div>
+
+                {/* Seção de Temas */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-semibold text-slate-700">Temas da Disciplina</label>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, topics: [...formData.topics, '']})}
+                      className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600 transition-colors flex items-center gap-1"
+                    >
+                      <Plus className="h-3 w-3" />
+                      Adicionar Tema
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {formData.topics.map((topic, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <input
+                          type="text"
+                          value={topic}
+                          onChange={(e) => {
+                            const newTopics = [...formData.topics];
+                            newTopics[index] = e.target.value;
+                            setFormData({...formData, topics: newTopics});
+                          }}
+                          placeholder={`Tema ${index + 1} (ex: Zollinger-Ellison Syndrome)`}
+                          className="flex-1 px-4 py-2 bg-white/70 backdrop-blur-sm border border-white/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newTopics = formData.topics.filter((_, i) => i !== index);
+                            setFormData({...formData, topics: newTopics});
+                          }}
+                          className="text-red-500 hover:text-red-700 p-1"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                    
+                    {formData.topics.length === 0 && (
+                      <p className="text-sm text-gray-500 italic">
+                        Clique em "Adicionar Tema" para criar temas dentro desta disciplina
+                      </p>
+                    )}
                   </div>
                 </div>
 
