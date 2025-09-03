@@ -322,20 +322,26 @@ const DisciplineManager = () => {
                   </p>
                 )}
                 
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <button 
                     onClick={() => handleEdit(discipline)}
-                    className="flex-1 bg-blue-500/20 text-blue-700 py-2 px-4 rounded-xl font-medium hover:bg-blue-500/30 transition-all duration-300 flex items-center justify-center gap-2"
+                    className="flex-1 bg-blue-500/20 text-blue-700 py-2 px-3 rounded-xl font-medium hover:bg-blue-500/30 transition-all duration-300 flex items-center justify-center gap-2 text-sm"
                   >
                     <Edit className="h-4 w-4" />
                     Editar
                   </button>
+                  <Link 
+                    to={`/admin/topics?discipline=${discipline.name}`}
+                    className="flex-1 bg-green-500/20 text-green-700 py-2 px-3 rounded-xl font-medium hover:bg-green-500/30 transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    Temas
+                  </Link>
                   <button 
                     onClick={() => handleDelete(discipline.id)}
-                    className="flex-1 bg-red-500/20 text-red-700 py-2 px-4 rounded-xl font-medium hover:bg-red-500/30 transition-all duration-300 flex items-center justify-center gap-2"
+                    className="bg-red-500/20 text-red-700 py-2 px-3 rounded-xl font-medium hover:bg-red-500/30 transition-all duration-300 flex items-center justify-center gap-2"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Excluir
                   </button>
                 </div>
               </div>
