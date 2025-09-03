@@ -32,8 +32,19 @@ const QuestionManager = () => {
     explanation: '',
     difficulty: 'medium',
     question_type: 'multiple_choice',
-    tags: [],
-    question_image_url: ''
+    tags: '',
+    question_image_url: '',
+    // Alternativas para múltipla escolha
+    option_a: '',
+    option_b: '',
+    option_c: '',
+    option_d: '',
+    option_e: '',
+    correct_answer: 'A',
+    // Para verdadeiro/falso
+    correct_tf_answer: true,
+    // Para dissertativa
+    sample_answer: ''
   });
 
   const disciplines = [
@@ -392,12 +403,161 @@ const QuestionManager = () => {
                   </label>
                   <input
                     type="text"
-                    value={newQuestion.tags.join(', ')}
-                    onChange={(e) => handleTagsChange(e.target.value)}
+                    value={newQuestion.tags}
+                    onChange={(e) => setNewQuestion(prev => ({ ...prev, tags: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Ex: gastroenterology, zollinger-ellison, diagnosis"
                   />
                 </div>
+
+                {/* Campos condicionais baseados no tipo */}
+                {newQuestion.question_type === 'multiple_choice' && (
+                  <div className="space-y-4">
+                    <h4 className="text-md font-semibold text-gray-800 border-t pt-4">Alternativas da Questão</h4>
+                    
+                    <div className="grid grid-cols-1 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          A) *
+                        </label>
+                        <input
+                          type="text"
+                          value={newQuestion.option_a}
+                          onChange={(e) => setNewQuestion(prev => ({ ...prev, option_a: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Primeira alternativa"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          B) *
+                        </label>
+                        <input
+                          type="text"
+                          value={newQuestion.option_b}
+                          onChange={(e) => setNewQuestion(prev => ({ ...prev, option_b: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Segunda alternativa"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          C) *
+                        </label>
+                        <input
+                          type="text"
+                          value={newQuestion.option_c}
+                          onChange={(e) => setNewQuestion(prev => ({ ...prev, option_c: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Terceira alternativa"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          D) *
+                        </label>
+                        <input
+                          type="text"
+                          value={newQuestion.option_d}
+                          onChange={(e) => setNewQuestion(prev => ({ ...prev, option_d: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Quarta alternativa"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          E) (opcional)
+                        </label>
+                        <input
+                          type="text"
+                          value={newQuestion.option_e}
+                          onChange={(e) => setNewQuestion(prev => ({ ...prev, option_e: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Quinta alternativa (opcional)"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Resposta Correta *
+                      </label>
+                      <select
+                        value={newQuestion.correct_answer}
+                        onChange={(e) => setNewQuestion(prev => ({ ...prev, correct_answer: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        {newQuestion.option_e && <option value="E">E</option>}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {newQuestion.question_type === 'true_false' && (
+                  <div className="space-y-4">
+                    <h4 className="text-md font-semibold text-gray-800 border-t pt-4">Verdadeiro ou Falso</h4>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Resposta Correta *
+                      </label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="tf_answer"
+                            checked={newQuestion.correct_tf_answer === true}
+                            onChange={() => setNewQuestion(prev => ({ ...prev, correct_tf_answer: true }))}
+                            className="mr-2"
+                          />
+                          Verdadeiro
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="tf_answer"
+                            checked={newQuestion.correct_tf_answer === false}
+                            onChange={() => setNewQuestion(prev => ({ ...prev, correct_tf_answer: false }))}
+                            className="mr-2"
+                          />
+                          Falso
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {newQuestion.question_type === 'essay' && (
+                  <div className="space-y-4">
+                    <h4 className="text-md font-semibold text-gray-800 border-t pt-4">Questão Dissertativa</h4>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Resposta Modelo (opcional)
+                      </label>
+                      <textarea
+                        value={newQuestion.sample_answer}
+                        onChange={(e) => setNewQuestion(prev => ({ ...prev, sample_answer: e.target.value }))}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Exemplo de resposta esperada para orientar a correção..."
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
