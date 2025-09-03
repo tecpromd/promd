@@ -22,10 +22,13 @@ import { supabase } from '../../lib/supabase';
 const ContentMaterialManager = () => {
   const [materials, setMaterials] = useState([]);
   const [topics, setTopics] = useState([]);
+  const [disciplines, setDisciplines] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedTopic, setSelectedTopic] = useState('');
+  const [selectedDiscipline, setSelectedDiscipline] = useState('');
   const [showNewMaterialForm, setShowNewMaterialForm] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState(null);
 
@@ -35,7 +38,8 @@ const ContentMaterialManager = () => {
     type: 'review',
     topic_id: '',
     file_url: '',
-    file_type: ''
+    file_type: '',
+    discipline: ''
   });
 
   const materialTypes = [
@@ -47,7 +51,71 @@ const ContentMaterialManager = () => {
   useEffect(() => {
     fetchMaterials();
     fetchTopics();
+    fetchDisciplines();
   }, []);
+
+  const fetchDisciplines = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('disciplines')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      setDisciplines(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar disciplinas:', error);
+    }
+  };
+
+  const handleFileUpload = async (file) => {
+    try {
+      setUploading(true);
+      
+      // Validar tipo de arquivo
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'text/markdown'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Tipo de arquivo não suportado. Use PDF, DOC, DOCX, TXT ou MD.');
+        return null;
+      }
+
+      // Validar tamanho (50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        alert('Arquivo muito grande. Máximo 50MB.');
+        return null;
+      }
+
+      // Gerar nome único
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `materials/${fileName}`;
+
+      // Upload para Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('content-materials')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      // Obter URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from('content-materials')
+        .getPublicUrl(filePath);
+
+      return {
+        url: publicUrl,
+        type: file.type,
+        name: file.name
+      };
+
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      alert('Erro ao fazer upload do arquivo: ' + error.message);
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const fetchMaterials = async () => {
     try {
