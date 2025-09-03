@@ -12,18 +12,15 @@ const TestConfiguration = () => {
   const [testModel, setTestModel] = useState('promd'); // promd, nbme, personalizado
   const [questionTypes, setQuestionTypes] = useState(['ineditas']); // array de tipos selecionados
   const [selectedDisciplines, setSelectedDisciplines] = useState([]);
+  const [selectedQuestionTypes, setSelectedQuestionTypes] = useState(['all']);
   const [questionCount, setQuestionCount] = useState(20);
-  const [customQuestionIds, setCustomQuestionIds] = useState('');
-  const [specificQuestionNumber, setSpecificQuestionNumber] = useState('');
   const [questionTypeCounts, setQuestionTypeCounts] = useState({
-    corretas: 0,
-    incorretas: 0,
-    ineditas: 0,
-    marcadas: 0,
-    todas: 0
-  });
-
-  // Opções disponíveis
+    correct: 0,
+    incorrect: 0,
+    new: 0,
+    marked: 0,
+    all: 0
+  });  // Opções disponíveis
   const testModes = [
     { id: 'tutor', label: 'Modo Tutor', description: 'Sem limite de tempo, com feedback imediato', icon: BookOpen },
     { id: 'cronometrado', label: 'Modo Cronometrado', description: '1,5 min por questão', icon: Clock }
@@ -340,23 +337,6 @@ const TestConfiguration = () => {
                       <span className="font-medium">01/07</span>
                     </div>
                   </div>
-                </div>
-
-                {/* Campo para questão específica */}
-                <div className="pt-4 border-t">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Questão Específica (opcional)
-                  </label>
-                  <input
-                    type="text"
-                    value={specificQuestionNumber}
-                    onChange={(e) => setSpecificQuestionNumber(e.target.value)}
-                    placeholder="Ex: 12345"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Digite o número da questão para estudar uma questão específica
-                  </p>
                 </div>
               </div>
             </div>
