@@ -382,20 +382,45 @@ const ContentMaterialManager = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-700">Tema *</label>
+                      <label className="block text-sm font-semibold text-slate-700">Disciplina *</label>
                       <select
-                        value={newMaterial.topic_id}
-                        onChange={(e) => setNewMaterial(prev => ({ ...prev, topic_id: e.target.value }))}
+                        value={selectedDiscipline}
+                        onChange={(e) => {
+                          setSelectedDiscipline(e.target.value);
+                          setNewMaterial(prev => ({ ...prev, discipline: e.target.value, topic_id: '' }));
+                        }}
                         className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-white/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                       >
-                        <option value="">Selecionar tema...</option>
-                        {topics.map(topic => (
-                          <option key={topic.id} value={topic.id}>
-                            {topic.name} ({topic.discipline})
+                        <option value="">Selecionar disciplina...</option>
+                        {disciplines.map(discipline => (
+                          <option key={discipline.id} value={discipline.name}>
+                            {discipline.name}
                           </option>
                         ))}
                       </select>
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700">Tema *</label>
+                    <select
+                      value={newMaterial.topic_id}
+                      onChange={(e) => setNewMaterial(prev => ({ ...prev, topic_id: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-white/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                      disabled={!selectedDiscipline}
+                    >
+                      <option value="">Selecionar tema...</option>
+                      {topics
+                        .filter(topic => topic.discipline === selectedDiscipline)
+                        .map(topic => (
+                          <option key={topic.id} value={topic.id}>
+                            {topic.name}
+                          </option>
+                        ))}
+                    </select>
+                    {!selectedDiscipline && (
+                      <p className="text-sm text-gray-500">Selecione uma disciplina primeiro</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -449,6 +474,56 @@ const ContentMaterialManager = () => {
                         <option value="txt">Texto</option>
                         <option value="md">Markdown</option>
                       </select>
+                    </div>
+                  </div>
+
+                  {/* Seção de Upload de Arquivo */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700">Ou fazer upload do arquivo</label>
+                    <div className="border-2 border-dashed border-blue-300 rounded-2xl p-6 bg-blue-50/50 backdrop-blur-sm">
+                      <div className="text-center">
+                        <Upload className="mx-auto h-12 w-12 text-blue-400 mb-4" />
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600">
+                            Arraste e solte um arquivo aqui, ou
+                          </p>
+                          <label className="cursor-pointer">
+                            <span className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors inline-block">
+                              Escolher Arquivo
+                            </span>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept=".pdf,.doc,.docx,.txt,.md"
+                              onChange={async (e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                  const result = await handleFileUpload(file);
+                                  if (result) {
+                                    setNewMaterial(prev => ({
+                                      ...prev,
+                                      file_url: result.url,
+                                      file_type: result.type.includes('pdf') ? 'pdf' : 
+                                                result.type.includes('word') ? 'doc' : 'txt'
+                                    }));
+                                  }
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                          PDF, DOC, DOCX, TXT, MD (máx. 50MB)
+                        </p>
+                        {uploading && (
+                          <div className="mt-4">
+                            <div className="bg-blue-200 rounded-full h-2">
+                              <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+                            </div>
+                            <p className="text-sm text-blue-600 mt-2">Fazendo upload...</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
