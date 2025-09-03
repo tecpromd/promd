@@ -15,6 +15,13 @@ const TestConfiguration = () => {
   const [questionCount, setQuestionCount] = useState(20);
   const [customQuestionIds, setCustomQuestionIds] = useState('');
   const [specificQuestionNumber, setSpecificQuestionNumber] = useState('');
+  const [questionTypeCounts, setQuestionTypeCounts] = useState({
+    corretas: 0,
+    incorretas: 0,
+    ineditas: 0,
+    marcadas: 0,
+    todas: 0
+  });
 
   // Opções disponíveis
   const testModes = [
@@ -29,12 +36,38 @@ const TestConfiguration = () => {
   ];
 
   const questionTypeOptions = [
-    { id: 'corretas', label: 'Respondidas Corretamente', count: 0 },
-    { id: 'incorretas', label: 'Respondidas Incorretamente', count: 0 },
-    { id: 'ineditas', label: 'Questões Inéditas', count: 14 },
-    { id: 'marcadas', label: 'Questões Marcadas', count: 0 },
-    { id: 'todas', label: 'Todas as Questões', count: 14 }
+    { id: 'corretas', label: 'Respondidas Corretamente', count: questionTypeCounts.corretas },
+    { id: 'incorretas', label: 'Respondidas Incorretamente', count: questionTypeCounts.incorretas },
+    { id: 'ineditas', label: 'Questões Inéditas', count: questionTypeCounts.ineditas },
+    { id: 'marcadas', label: 'Questões Marcadas', count: questionTypeCounts.marcadas },
+    { id: 'todas', label: 'Todas as Questões', count: questionTypeCounts.todas }
   ];
+
+  // Calcular contagens de tipos de questões baseado nas disciplinas selecionadas
+  useEffect(() => {
+    if (selectedDisciplines.length > 0 && disciplines.length > 0) {
+      const selectedDisciplineData = disciplines.filter(d => selectedDisciplines.includes(d.id));
+      const totalQuestions = selectedDisciplineData.reduce((sum, d) => sum + (d.questionCount || 0), 0);
+      
+      // Por enquanto, assumindo que todas as questões são inéditas
+      // Em uma implementação completa, isso viria do histórico do usuário
+      setQuestionTypeCounts({
+        corretas: 0,
+        incorretas: 0,
+        ineditas: totalQuestions,
+        marcadas: 0,
+        todas: totalQuestions
+      });
+    } else {
+      setQuestionTypeCounts({
+        corretas: 0,
+        incorretas: 0,
+        ineditas: 0,
+        marcadas: 0,
+        todas: 0
+      });
+    }
+  }, [selectedDisciplines, disciplines]);
 
   // Calcular tempo estimado
   const calculateEstimatedTime = () => {
@@ -238,7 +271,7 @@ const TestConfiguration = () => {
                         />
                         <span className="ml-3 font-medium">{discipline.name}</span>
                       </div>
-                      <span className="text-sm text-gray-500">140 questões</span>
+                      <span className="text-sm text-gray-500">{discipline.questionCount || 0} questões</span>
                     </label>
                   ))
                 )}
@@ -258,6 +291,25 @@ const TestConfiguration = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Número de Questões (máx. 40)
                   </label>
+                  
+                  {/* Campo de entrada direta */}
+                  <div className="mb-3">
+                    <input
+                      type="number"
+                      min="1"
+                      max="40"
+                      value={questionCount}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1;
+                        const clampedValue = Math.min(Math.max(value, 1), 40);
+                        setQuestionCount(clampedValue);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Digite o número de questões"
+                    />
+                  </div>
+                  
+                  {/* Slider */}
                   <input
                     type="range"
                     min="1"

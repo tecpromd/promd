@@ -3,6 +3,7 @@ import FlashcardViewerProMD from '../components/flashcards/FlashcardViewerProMD'
 import QuestionStudyViewerModern from '../components/questions/QuestionStudyViewerModern';
 import { useSupabaseFlashcards } from '../hooks/useSupabaseFlashcards';
 import { useSupabaseQuestions } from '../hooks/useSupabaseQuestions';
+import { supabase } from '../lib/supabase';
 
 const Study = () => {
   const { flashcards } = useSupabaseFlashcards();
@@ -45,6 +46,58 @@ const Study = () => {
     setCurrentIndex(0);
     setStats({ correct: 0, incorrect: 0 });
     setIsComplete(false);
+  };
+
+  // Função para salvar avaliação de dificuldade
+  const saveDifficultyRating = async (flashcardId, difficultyLevel) => {
+    try {
+      // Primeiro, verificar se já existe uma avaliação para este flashcard
+      const { data: existingRating, error: fetchError } = await supabase
+        .from('flashcard_ratings')
+        .select('id')
+        .eq('flashcard_id', flashcardId)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Erro ao verificar avaliação existente:', fetchError);
+        return;
+      }
+
+      if (existingRating) {
+        // Atualizar avaliação existente
+        const { error: updateError } = await supabase
+          .from('flashcard_ratings')
+          .update({ 
+            difficulty_level: difficultyLevel,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingRating.id);
+
+        if (updateError) {
+          console.error('Erro ao atualizar avaliação:', updateError);
+        } else {
+          console.log(`Avaliação atualizada: Flashcard ${flashcardId} - Dificuldade ${difficultyLevel}`);
+        }
+      } else {
+        // Criar nova avaliação
+        const { error: insertError } = await supabase
+          .from('flashcard_ratings')
+          .insert({
+            flashcard_id: flashcardId,
+            difficulty_level: difficultyLevel,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (insertError) {
+          console.error('Erro ao criar avaliação:', insertError);
+        } else {
+          console.log(`Nova avaliação criada: Flashcard ${flashcardId} - Dificuldade ${difficultyLevel}`);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao salvar avaliação de dificuldade:', error);
+    }
   };
 
   // Tela inicial - seleção de modo
@@ -462,8 +515,8 @@ const Study = () => {
         onIncorrect={handleIncorrect}
         onNext={handleNext}
         onDifficultyRate={(level) => {
-          // Salvar avaliação de dificuldade
-          console.log(`Flashcard avaliado com dificuldade: ${level}`);
+          // Salvar avaliação de dificuldade no Supabase
+          saveDifficultyRating(currentItem.id, level);
         }}
       />
     );

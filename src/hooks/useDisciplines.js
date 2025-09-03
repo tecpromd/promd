@@ -6,34 +6,27 @@ export const useDisciplines = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Lista oficial de disciplinas conforme PDF
+  // Lista oficial de disciplinas conforme padrão (19 disciplinas)
   const officialDisciplines = [
-    { id: 1, name: 'Behavioral Science', name_pt: 'Ciências Comportamentais' },
-    { id: 2, name: 'Decision-Making Capacity and Personal Skills', name_pt: 'Capacidade de Tomada de Decisão e Habilidades Pessoais' },
-    { id: 3, name: 'Ethics Principles & Jurisprudence', name_pt: 'Princípios Éticos e Jurisprudência' },
-    { id: 4, name: 'Healthcare Delivery System', name_pt: 'Sistema de Prestação de Cuidados de Saúde' },
-    { id: 5, name: 'Informed Consent', name_pt: 'Consentimento Informado' },
-    { id: 6, name: 'Public Health', name_pt: 'Saúde Pública' },
-    { id: 7, name: 'Quality and Patient Safety', name_pt: 'Qualidade e Segurança do Paciente' },
-    { id: 8, name: 'Biochemistry', name_pt: 'Bioquímica' },
-    { id: 9, name: 'Biostatistics & Epidemiology', name_pt: 'Bioestatística e Epidemiologia' },
-    { id: 10, name: 'Cardiology', name_pt: 'Cardiologia' },
-    { id: 11, name: 'Dermatology', name_pt: 'Dermatologia' },
-    { id: 12, name: 'Endocrinology', name_pt: 'Endocrinologia' },
-    { id: 13, name: 'Gastroenterology', name_pt: 'Gastroenterologia' },
-    { id: 14, name: 'Genetics', name_pt: 'Genética' },
-    { id: 15, name: 'Hematology', name_pt: 'Hematologia' },
-    { id: 16, name: 'Immunology', name_pt: 'Imunologia' },
-    { id: 17, name: 'Infectious Disease', name_pt: 'Doenças Infecciosas' },
-    { id: 18, name: 'Anatomy, Musculoskeletal & Rheumatology', name_pt: 'Anatomia, Musculoesquelético e Reumatologia' },
-    { id: 19, name: 'Neurology', name_pt: 'Neurologia' },
-    { id: 20, name: 'Pathology', name_pt: 'Patologia' },
-    { id: 21, name: 'Pharmacology', name_pt: 'Farmacologia' },
-    { id: 22, name: 'Psychiatry', name_pt: 'Psiquiatria' },
-    { id: 23, name: 'Pulmonary', name_pt: 'Pneumologia' },
-    { id: 24, name: 'Renal', name_pt: 'Nefrologia' },
-    { id: 25, name: 'Female Genital, Reproductive & Breast', name_pt: 'Genital Feminino, Reprodutivo e Mama' },
-    { id: 26, name: 'Male Pathology', name_pt: 'Patologia Masculina' }
+    { id: 1, name: 'Decision-Making Capacity and Personal Skills', name_pt: 'Capacidade de Tomada de Decisão e Habilidades Pessoais' },
+    { id: 2, name: 'Ethics Principles & Jurisprudence', name_pt: 'Princípios Éticos e Jurisprudência' },
+    { id: 3, name: 'Healthcare Delivery System', name_pt: 'Sistema de Prestação de Cuidados de Saúde' },
+    { id: 4, name: 'Informed Consent', name_pt: 'Consentimento Informado' },
+    { id: 5, name: 'Public Health', name_pt: 'Saúde Pública' },
+    { id: 6, name: 'Quality and Patient Safety', name_pt: 'Qualidade e Segurança do Paciente' },
+    { id: 7, name: 'Biochemistry', name_pt: 'Bioquímica' },
+    { id: 8, name: 'Biostatistics & Epidemiology', name_pt: 'Bioestatística e Epidemiologia' },
+    { id: 9, name: 'Cardiology', name_pt: 'Cardiologia' },
+    { id: 10, name: 'Dermatology', name_pt: 'Dermatologia' },
+    { id: 11, name: 'Endocrinology', name_pt: 'Endocrinologia' },
+    { id: 12, name: 'Gastroenterology', name_pt: 'Gastroenterologia' },
+    { id: 13, name: 'Genetics', name_pt: 'Genética' },
+    { id: 14, name: 'Hematology', name_pt: 'Hematologia' },
+    { id: 15, name: 'Immunology', name_pt: 'Imunologia' },
+    { id: 16, name: 'Infectious Disease', name_pt: 'Doenças Infecciosas' },
+    { id: 17, name: 'Anatomy, Musculoskeletal & Rheumatology', name_pt: 'Anatomia, Musculoesquelético e Reumatologia' },
+    { id: 18, name: 'Neurology', name_pt: 'Neurologia' },
+    { id: 19, name: 'Pathology', name_pt: 'Patologia' }
   ];
 
   const fetchDisciplines = async () => {
