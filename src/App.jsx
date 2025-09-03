@@ -12,6 +12,8 @@ import { ExamMode } from './pages/ExamMode'
 import Questions from './pages/Questions'
 import TestConfiguration from './pages/TestConfiguration'
 import TestExecution from './pages/TestExecution'
+import Notebook from './pages/Notebook'
+import Notes from './pages/Notes'
 import { Analytics } from './pages/Analytics'
 import { Achievements } from './pages/Achievements'
 import { Layout } from './components/Layout'
@@ -104,6 +106,20 @@ function App() {
             <Route path="/questions-view" element={
               <Layout>
                 <Questions />
+              </Layout>
+            } />
+
+            {/* Notebook - Anotações Gerais */}
+            <Route path="/notebook" element={
+              <Layout>
+                <Notebook />
+              </Layout>
+            } />
+
+            {/* Notes - Anotações Contextuais */}
+            <Route path="/notes" element={
+              <Layout>
+                <Notes />
               </Layout>
             } />
 

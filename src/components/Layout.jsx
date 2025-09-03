@@ -42,7 +42,8 @@ import {
   BarChart3,
   Trophy,
   FileText,
-  Globe
+  Globe,
+  StickyNote
 } from 'lucide-react'
 
 const navigation = [
@@ -51,6 +52,8 @@ const navigation = [
   { name: 'Estudar', href: '/study', icon: GraduationCap },
   { name: 'Banco de Questões', href: '/questions', icon: Database },
   { name: 'Modo Prova', href: '/exam', icon: FileText },
+  { name: 'Notebook', href: '/notebook', icon: BookOpen },
+  { name: 'Notes', href: '/notes', icon: StickyNote },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Conquistas', href: '/achievements', icon: Trophy },
 ]
