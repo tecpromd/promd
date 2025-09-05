@@ -26,54 +26,42 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from './ui/sidebar'
-import {
-  Home,
-  BookOpen,
-  GraduationCap,
-  Settings,
-  Search,
-  Bell,
-  Sun,
-  Moon,
-  LogOut,
-  User,
-  Shield,
-  Database,
-  BarChart3,
-  Trophy,
-  FileText,
-  Globe,
-  StickyNote
-} from 'lucide-react'
 
-// Material-UI imports
+// Material-UI imports para ícones modernos
+import {
+  Dashboard as DashboardIcon,
+  Style as FlashcardsIcon,
+  School as StudyIcon,
+  Quiz as QuestionsIcon,
+  Assignment as ExamIcon,
+  MenuBook as NotebookIcon,
+  Notes as NotesIcon,
+  Analytics as AnalyticsIcon,
+  EmojiEvents as TrophyIcon,
+  Search as SearchIcon,
+  Notifications as NotificationsIcon,
+  LightMode as SunIcon,
+  DarkMode as MoonIcon,
+  Logout as LogoutIcon,
+  Person as UserIcon,
+  Language as LanguageIcon,
+  Menu as MenuIcon,
+  Close as CloseIcon
+} from '@mui/icons-material'
+
+// Material-UI components
 import {
   Chip,
   IconButton,
   Tooltip,
-  Box,
   Typography,
   Card,
   CardContent,
-  Divider
+  Divider,
+  Box,
+  Fade,
+  Zoom
 } from '@mui/material'
-
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: Home },
-  { name: 'Flashcards', href: '/study-mode', icon: BookOpen },
-  { name: 'Estudar', href: '/study', icon: GraduationCap },
-  { name: 'Banco de Questões', href: '/questions', icon: Database },
-  { name: 'Modo Prova', href: '/exam', icon: FileText },
-  { name: 'Notebook', href: '/notebook', icon: BookOpen },
-  { name: 'Notes', href: '/notes', icon: StickyNote },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Conquistas', href: '/achievements', icon: Trophy },
-]
-
-const adminNavigation = [
-  { name: 'Administração', href: '/admin', icon: Shield },
-  { name: 'CMS - Gerenciar Conteúdo', href: '/admin/cms', icon: Settings, description: 'Adicionar questões, flashcards e conteúdo' },
-]
 
 export const Layout = ({ children }) => {
   const { user, profile, signOut, isAdmin } = useAuth()
@@ -83,231 +71,311 @@ export const Layout = ({ children }) => {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
 
-  const handleSignOut = async () => {
-    await signOut()
-    navigate('/')
-  }
-
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light')
-  }
-
-  const getUserInitials = () => {
-    if (profile?.name) {
-      return profile.name
-        .split(' ')
-        .map(n => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
+  const navigation = [
+    { 
+      name: 'Dashboard', 
+      href: '/', 
+      icon: DashboardIcon, 
+      color: 'bg-gradient-to-r from-green-400 to-green-600',
+      hoverColor: 'hover:from-green-500 hover:to-green-700',
+      badge: null
+    },
+    { 
+      name: 'Flashcards', 
+      href: '/study-mode', 
+      icon: FlashcardsIcon, 
+      color: 'bg-gradient-to-r from-blue-400 to-blue-600',
+      hoverColor: 'hover:from-blue-500 hover:to-blue-700',
+      badge: '2'
+    },
+    { 
+      name: 'Estudar', 
+      href: '/study', 
+      icon: StudyIcon, 
+      color: 'bg-gradient-to-r from-yellow-400 to-yellow-600',
+      hoverColor: 'hover:from-yellow-500 hover:to-yellow-700',
+      badge: null
+    },
+    { 
+      name: 'Banco de Questões', 
+      href: '/questions', 
+      icon: QuestionsIcon, 
+      color: 'bg-gradient-to-r from-purple-400 to-purple-600',
+      hoverColor: 'hover:from-purple-500 hover:to-purple-700',
+      badge: '4'
+    },
+    { 
+      name: 'Modo Prova', 
+      href: '/exam', 
+      icon: ExamIcon, 
+      color: 'bg-gradient-to-r from-teal-400 to-teal-600',
+      hoverColor: 'hover:from-teal-500 hover:to-teal-700',
+      badge: '5'
+    },
+    { 
+      name: 'Notebook', 
+      href: '/notebook', 
+      icon: NotebookIcon, 
+      color: 'bg-gradient-to-r from-pink-400 to-pink-600',
+      hoverColor: 'hover:from-pink-500 hover:to-pink-700',
+      badge: null
+    },
+    { 
+      name: 'Notes', 
+      href: '/notes', 
+      icon: NotesIcon, 
+      color: 'bg-gradient-to-r from-indigo-400 to-indigo-600',
+      hoverColor: 'hover:from-indigo-500 hover:to-indigo-700',
+      badge: '7'
+    },
+    { 
+      name: 'Analytics', 
+      href: '/analytics', 
+      icon: AnalyticsIcon, 
+      color: 'bg-gradient-to-r from-orange-400 to-orange-600',
+      hoverColor: 'hover:from-orange-500 hover:to-orange-700',
+      badge: '8'
+    },
+    { 
+      name: 'Conquistas', 
+      href: '/achievements', 
+      icon: TrophyIcon, 
+      color: 'bg-gradient-to-r from-emerald-400 to-emerald-600',
+      hoverColor: 'hover:from-emerald-500 hover:to-emerald-700',
+      badge: '6'
     }
-    return user?.email?.[0]?.toUpperCase() || 'U'
+  ]
+
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      navigate('/login')
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error)
+    }
+  }
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`)
+    }
   }
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-        {/* Sidebar Modernizada */}
-        <Sidebar className="border-r bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-lg">
-          <SidebarHeader className="border-b p-3">
-            <div className="flex items-center gap-2">
-              <img 
-                src="/logo-promd-official.png" 
-                alt="ProMD Logo" 
-                className="h-8 w-auto object-contain"
-              />
-              <div>
-                <Typography variant="caption" className="text-muted-foreground text-xs">
-                  Plataforma de Validação Médica
-                </Typography>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        {/* Sidebar Moderna */}
+        <Sidebar className="border-r border-slate-200/50 dark:border-slate-700/50 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80">
+          <SidebarHeader className="p-4">
+            <Zoom in={true} timeout={800}>
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Typography variant="h6" className="text-white font-bold">
+                    P
+                  </Typography>
+                </div>
+                <div>
+                  <Typography variant="h6" className="font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    ProMD
+                  </Typography>
+                  <Typography variant="caption" className="text-slate-500 dark:text-slate-400">
+                    Plataforma de Validação Médica
+                  </Typography>
+                </div>
               </div>
-            </div>
+            </Zoom>
           </SidebarHeader>
 
-          <SidebarContent className="p-2">
+          <SidebarContent className="px-3">
             <SidebarMenu>
-              {navigation.map((item) => (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === item.href}
-                    className="h-9 px-3 py-2 text-sm"
-                  >
-                    <Link to={item.href} className="flex items-center gap-2">
-                      <item.icon className="h-4 w-4" />
-                      <span className="text-sm">{item.name}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-              
-              {isAdmin && (
-                <>
-                  <Divider className="my-2" />
-                  {adminNavigation.map((item) => (
-                    <SidebarMenuItem key={item.name}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={location.pathname === item.href}
-                        className="h-9 px-3 py-2 text-sm"
+              {navigation.map((item, index) => {
+                const isActive = location.pathname === item.href
+                const Icon = item.icon
+                
+                return (
+                  <Fade in={true} timeout={600 + index * 100} key={item.name}>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        asChild 
+                        className={`
+                          group relative overflow-hidden rounded-xl transition-all duration-300 mb-1
+                          ${isActive 
+                            ? `${item.color} text-white shadow-lg transform scale-105` 
+                            : `hover:bg-gradient-to-r ${item.hoverColor} hover:text-white hover:shadow-md hover:transform hover:scale-102`
+                          }
+                        `}
                       >
-                        <Link to={item.href} className="flex items-center gap-2">
-                          <item.icon className="h-4 w-4" />
-                          <span className="text-sm">{item.name}</span>
-                          <Chip 
-                            label="Admin" 
-                            size="small" 
-                            variant="outlined"
-                            className="ml-auto h-5 text-xs"
-                          />
+                        <Link to={item.href} className="flex items-center space-x-3 p-3">
+                          <div className="relative">
+                            <Icon className={`h-5 w-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+                            {item.badge && (
+                              <Chip 
+                                label={item.badge} 
+                                size="small" 
+                                className="absolute -top-2 -right-2 h-5 w-5 min-w-0 text-xs bg-red-500 text-white"
+                              />
+                            )}
+                          </div>
+                          <span className="font-medium">{item.name}</span>
+                          {isActive && (
+                            <div className="absolute right-2 w-1 h-6 bg-white/30 rounded-full" />
+                          )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  ))}
-                </>
-              )}
+                  </Fade>
+                )
+              })}
             </SidebarMenu>
           </SidebarContent>
 
-          <SidebarFooter className="border-t p-3">
-            <div className="space-y-2">
-              {/* Estatísticas compactas */}
-              <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950">
-                <CardContent className="p-2">
-                  <div className="grid grid-cols-2 gap-2 text-center">
-                    <div>
-                      <Typography variant="h6" className="text-blue-600 text-sm font-bold">12</Typography>
-                      <Typography variant="caption" className="text-muted-foreground text-xs">Estudados</Typography>
-                    </div>
-                    <div>
-                      <Typography variant="h6" className="text-cyan-600 text-sm font-bold">89%</Typography>
-                      <Typography variant="caption" className="text-muted-foreground text-xs">Progresso</Typography>
-                    </div>
+          <SidebarFooter className="p-4">
+            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-0 shadow-sm">
+              <CardContent className="p-3">
+                <div className="flex items-center space-x-3">
+                  <Avatar className="h-8 w-8 bg-gradient-to-r from-blue-500 to-purple-600">
+                    <AvatarFallback className="text-white text-sm font-bold">
+                      {profile?.full_name?.[0] || user?.email?.[0] || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <Typography variant="body2" className="font-medium truncate">
+                      {profile?.full_name || 'Usuário'}
+                    </Typography>
+                    <Typography variant="caption" className="text-slate-500 dark:text-slate-400">
+                      Estudante
+                    </Typography>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Perfil compacto */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-start gap-2 p-2 h-10">
-                    <Avatar className="h-6 w-6">
-                      <AvatarFallback className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-xs">
-                        {getUserInitials()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 text-left">
-                      <div className="text-xs font-medium">
-                        {profile?.name || 'Usuário'}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {profile?.role === 'admin' ? 'Administrador' : 'Estudante'}
-                      </div>
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel className="text-sm">Minha Conta</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/profile')} className="text-sm">
-                    <User className="mr-2 h-3 w-3" />
-                    Perfil
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/settings')} className="text-sm">
-                    <Settings className="mr-2 h-3 w-3" />
-                    Configurações
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={toggleTheme} className="text-sm">
-                    {theme === 'light' ? (
-                      <Moon className="mr-2 h-3 w-3" />
-                    ) : (
-                      <Sun className="mr-2 h-3 w-3" />
-                    )}
-                    {theme === 'light' ? 'Modo Escuro' : 'Modo Claro'}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-sm">
-                    <LogOut className="mr-2 h-3 w-3" />
-                    Sair
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                  <Chip label="10" size="small" className="bg-red-500 text-white" />
+                </div>
+              </CardContent>
+            </Card>
           </SidebarFooter>
         </Sidebar>
 
-        {/* Conteúdo principal */}
-        <div className="flex-1 flex flex-col">
-          {/* Header compacto */}
-          <header className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b px-4 py-2 shadow-sm">
+        {/* Conteúdo Principal */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header Moderno */}
+          <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-700/50 px-6 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <SidebarTrigger className="h-8 w-8" />
-                
-                {/* Busca compacta */}
-                <div className="relative w-80">
-                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar flashcards..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8 h-8 text-sm bg-white/50 dark:bg-slate-800/50 border-slate-200"
-                  />
-                </div>
+              <div className="flex items-center space-x-4">
+                <SidebarTrigger className="lg:hidden">
+                  <IconButton size="small">
+                    <MenuIcon />
+                  </IconButton>
+                </SidebarTrigger>
+
+                {/* Busca Moderna */}
+                <form onSubmit={handleSearch} className="relative">
+                  <div className="relative">
+                    <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      type="search"
+                      placeholder="Buscar flashcards..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 pr-4 py-2 w-64 bg-slate-100/50 dark:bg-slate-800/50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-slate-800"
+                    />
+                  </div>
+                </form>
               </div>
 
-              <div className="flex items-center gap-2">
-                {/* Seletor de Idiomas compacto */}
+              <div className="flex items-center space-x-3">
+                {/* Seletor de Idioma */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-1 h-8 px-2 text-xs">
-                      <Globe className="h-3 w-3" />
-                      {availableLanguages.find(lang => lang.code === currentLanguage)?.flag} {availableLanguages.find(lang => lang.code === currentLanguage)?.name.slice(0, 2).toUpperCase()}
+                    <Button variant="ghost" size="sm" className="rounded-xl">
+                      <LanguageIcon className="h-4 w-4 mr-2" />
+                      🇧🇷 PO
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {availableLanguages.map((language) => (
-                      <DropdownMenuItem 
-                        key={language.code}
-                        onClick={() => changeLanguage(language.code)}
-                        className={`text-sm ${currentLanguage === language.code ? 'bg-accent' : ''}`}
+                  <DropdownMenuContent align="end" className="w-48">
+                    {availableLanguages.map((lang) => (
+                      <DropdownMenuItem
+                        key={lang.code}
+                        onClick={() => changeLanguage(lang.code)}
+                        className={currentLanguage === lang.code ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
                       >
-                        {language.flag} {language.name}
+                        <span className="mr-2">{lang.flag}</span>
+                        {lang.name}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Notificações compactas */}
+                {/* Notificações */}
                 <Tooltip title="Notificações">
-                  <IconButton size="small" className="relative">
-                    <Bell className="h-4 w-4" />
+                  <IconButton className="relative">
+                    <NotificationsIcon className="h-5 w-5" />
                     <Chip 
                       label="3" 
-                      size="small"
-                      className="absolute -top-1 -right-1 h-4 w-4 min-w-4 text-xs bg-red-500 text-white"
+                      size="small" 
+                      className="absolute -top-1 -right-1 h-5 w-5 min-w-0 text-xs bg-red-500 text-white"
                     />
                   </IconButton>
                 </Tooltip>
 
-                {/* Avatar compacto */}
-                <Avatar className="h-7 w-7">
-                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-xs">
-                    {getUserInitials()}
-                  </AvatarFallback>
-                </Avatar>
+                {/* Toggle Tema */}
+                <Tooltip title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}>
+                  <IconButton onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                    {theme === 'dark' ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+                  </IconButton>
+                </Tooltip>
+
+                {/* Menu do Usuário */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-xl">
+                      <Avatar className="h-8 w-8 bg-gradient-to-r from-blue-500 to-purple-600">
+                        <AvatarFallback className="text-white font-bold">
+                          {profile?.full_name?.[0] || user?.email?.[0] || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {profile?.full_name || 'Usuário'}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user?.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <UserIcon className="mr-2 h-4 w-4" />
+                      <span>Perfil</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <AnalyticsIcon className="mr-2 h-4 w-4" />
+                      <span>Configurações</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogoutIcon className="mr-2 h-4 w-4" />
+                      <span>Sair</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </header>
 
-          {/* Conteúdo da página */}
-          <main className="flex-1 p-4 overflow-auto">
-            {children}
+          {/* Conteúdo */}
+          <main className="flex-1 overflow-auto">
+            <div className="container mx-auto px-6 py-6">
+              {children}
+            </div>
           </main>
         </div>
       </div>
     </SidebarProvider>
   )
 }
+
+export default Layout
 
