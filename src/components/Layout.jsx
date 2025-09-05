@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -45,6 +45,18 @@ import {
   Globe,
   StickyNote
 } from 'lucide-react'
+
+// Material-UI imports
+import {
+  Chip,
+  IconButton,
+  Tooltip,
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Divider
+} from '@mui/material'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -95,34 +107,35 @@ export const Layout = ({ children }) => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-        {/* Sidebar */}
-        <Sidebar className="border-r bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
-          <SidebarHeader className="border-b p-4">
-            <div className="flex items-center gap-3">
+        {/* Sidebar Modernizada */}
+        <Sidebar className="border-r bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-lg">
+          <SidebarHeader className="border-b p-3">
+            <div className="flex items-center gap-2">
               <img 
                 src="/logo-promd-official.png" 
                 alt="ProMD Logo" 
-                className="h-12 w-auto object-contain"
+                className="h-8 w-auto object-contain"
               />
               <div>
-                <p className="text-xs text-muted-foreground">
+                <Typography variant="caption" className="text-muted-foreground text-xs">
                   Plataforma de Validação Médica
-                </p>
+                </Typography>
               </div>
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="p-4">
+          <SidebarContent className="p-2">
             <SidebarMenu>
               {navigation.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton
                     asChild
                     isActive={location.pathname === item.href}
+                    className="h-9 px-3 py-2 text-sm"
                   >
-                    <Link to={item.href} className="flex items-center gap-3">
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.name}</span>
+                    <Link to={item.href} className="flex items-center gap-2">
+                      <item.icon className="h-4 w-4" />
+                      <span className="text-sm">{item.name}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -130,19 +143,23 @@ export const Layout = ({ children }) => {
               
               {isAdmin && (
                 <>
-                  <div className="my-4 border-t" />
+                  <Divider className="my-2" />
                   {adminNavigation.map((item) => (
                     <SidebarMenuItem key={item.name}>
                       <SidebarMenuButton
                         asChild
                         isActive={location.pathname === item.href}
+                        className="h-9 px-3 py-2 text-sm"
                       >
-                        <Link to={item.href} className="flex items-center gap-3">
-                          <item.icon className="h-5 w-5" />
-                          <span>{item.name}</span>
-                          <Badge variant="secondary" className="ml-auto">
-                            Admin
-                          </Badge>
+                        <Link to={item.href} className="flex items-center gap-2">
+                          <item.icon className="h-4 w-4" />
+                          <span className="text-sm">{item.name}</span>
+                          <Chip 
+                            label="Admin" 
+                            size="small" 
+                            variant="outlined"
+                            className="ml-auto h-5 text-xs"
+                          />
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -152,33 +169,35 @@ export const Layout = ({ children }) => {
             </SidebarMenu>
           </SidebarContent>
 
-          <SidebarFooter className="border-t p-4">
-            <div className="space-y-3">
-              {/* Estatísticas rápidas */}
-              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950 rounded-lg p-3">
-                <div className="grid grid-cols-2 gap-2 text-center">
-                  <div>
-                    <div className="text-lg font-bold text-blue-600">12</div>
-                    <div className="text-xs text-muted-foreground">Estudados</div>
+          <SidebarFooter className="border-t p-3">
+            <div className="space-y-2">
+              {/* Estatísticas compactas */}
+              <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950">
+                <CardContent className="p-2">
+                  <div className="grid grid-cols-2 gap-2 text-center">
+                    <div>
+                      <Typography variant="h6" className="text-blue-600 text-sm font-bold">12</Typography>
+                      <Typography variant="caption" className="text-muted-foreground text-xs">Estudados</Typography>
+                    </div>
+                    <div>
+                      <Typography variant="h6" className="text-cyan-600 text-sm font-bold">89%</Typography>
+                      <Typography variant="caption" className="text-muted-foreground text-xs">Progresso</Typography>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-lg font-bold text-cyan-600">89%</div>
-                    <div className="text-xs text-muted-foreground">Progresso</div>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              {/* Perfil do usuário */}
+              {/* Perfil compacto */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-start gap-3 p-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-sm">
+                  <Button variant="ghost" className="w-full justify-start gap-2 p-2 h-10">
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-xs">
                         {getUserInitials()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 text-left">
-                      <div className="text-sm font-medium">
+                      <div className="text-xs font-medium">
                         {profile?.name || 'Usuário'}
                       </div>
                       <div className="text-xs text-muted-foreground">
@@ -187,29 +206,29 @@ export const Layout = ({ children }) => {
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel className="text-sm">Minha Conta</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    <User className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem onClick={() => navigate('/profile')} className="text-sm">
+                    <User className="mr-2 h-3 w-3" />
                     Perfil
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/settings')}>
-                    <Settings className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem onClick={() => navigate('/settings')} className="text-sm">
+                    <Settings className="mr-2 h-3 w-3" />
                     Configurações
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={toggleTheme}>
+                  <DropdownMenuItem onClick={toggleTheme} className="text-sm">
                     {theme === 'light' ? (
-                      <Moon className="mr-2 h-4 w-4" />
+                      <Moon className="mr-2 h-3 w-3" />
                     ) : (
-                      <Sun className="mr-2 h-4 w-4" />
+                      <Sun className="mr-2 h-3 w-3" />
                     )}
                     {theme === 'light' ? 'Modo Escuro' : 'Modo Claro'}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-sm">
+                    <LogOut className="mr-2 h-3 w-3" />
                     Sair
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -220,30 +239,30 @@ export const Layout = ({ children }) => {
 
         {/* Conteúdo principal */}
         <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b px-6 py-4">
+          {/* Header compacto */}
+          <header className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b px-4 py-2 shadow-sm">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger />
+              <div className="flex items-center gap-3">
+                <SidebarTrigger className="h-8 w-8" />
                 
-                {/* Busca */}
-                <div className="relative w-96">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                {/* Busca compacta */}
+                <div className="relative w-80">
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                   <Input
                     placeholder="Buscar flashcards..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-white/50 dark:bg-slate-800/50"
+                    className="pl-8 h-8 text-sm bg-white/50 dark:bg-slate-800/50 border-slate-200"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                {/* Seletor de Idiomas */}
+              <div className="flex items-center gap-2">
+                {/* Seletor de Idiomas compacto */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Globe className="h-4 w-4" />
+                    <Button variant="outline" size="sm" className="gap-1 h-8 px-2 text-xs">
+                      <Globe className="h-3 w-3" />
                       {availableLanguages.find(lang => lang.code === currentLanguage)?.flag} {availableLanguages.find(lang => lang.code === currentLanguage)?.name.slice(0, 2).toUpperCase()}
                     </Button>
                   </DropdownMenuTrigger>
@@ -252,7 +271,7 @@ export const Layout = ({ children }) => {
                       <DropdownMenuItem 
                         key={language.code}
                         onClick={() => changeLanguage(language.code)}
-                        className={currentLanguage === language.code ? 'bg-accent' : ''}
+                        className={`text-sm ${currentLanguage === language.code ? 'bg-accent' : ''}`}
                       >
                         {language.flag} {language.name}
                       </DropdownMenuItem>
@@ -260,17 +279,21 @@ export const Layout = ({ children }) => {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Notificações */}
-                <Button variant="ghost" size="sm" className="relative">
-                  <Bell className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500">
-                    3
-                  </Badge>
-                </Button>
+                {/* Notificações compactas */}
+                <Tooltip title="Notificações">
+                  <IconButton size="small" className="relative">
+                    <Bell className="h-4 w-4" />
+                    <Chip 
+                      label="3" 
+                      size="small"
+                      className="absolute -top-1 -right-1 h-4 w-4 min-w-4 text-xs bg-red-500 text-white"
+                    />
+                  </IconButton>
+                </Tooltip>
 
-                {/* Avatar do usuário */}
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white">
+                {/* Avatar compacto */}
+                <Avatar className="h-7 w-7">
+                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-xs">
                     {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
@@ -279,7 +302,7 @@ export const Layout = ({ children }) => {
           </header>
 
           {/* Conteúdo da página */}
-          <main className="flex-1 p-6 overflow-auto">
+          <main className="flex-1 p-4 overflow-auto">
             {children}
           </main>
         </div>

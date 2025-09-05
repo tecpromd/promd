@@ -2,23 +2,63 @@ import React, { useState } from 'react';
 import ImageZoom from '../ImageZoom';
 import ImageUpload from '../ImageUpload';
 
-const FlashCardWithImage = ({ flashcard, index, onImageUpdate, showImageUpload = false }) => {
-  const [isFlipped, setIsFlipped] = useState(false);
+// Material-UI imports
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Chip,
+  IconButton,
+  Rating,
+  Tooltip,
+  Paper,
+  Fade
+} from '@mui/material';
+import {
+  RotateLeft,
+  Star,
+  StarBorder,
+  Visibility,
+  VisibilityOff
+} from '@mui/icons-material';
+
+const FlashCardWithImage = ({ 
+  flashcard, 
+  index, 
+  onImageUpdate, 
+  showImageUpload = false,
+  flipped = false,
+  onFlip,
+  onNext,
+  onPrevious,
+  showNavigation = false,
+  compact = false,
+  onDifficultyRate
+}) => {
+  const [isFlipped, setIsFlipped] = useState(flipped);
+  const [userRating, setUserRating] = useState(flashcard.userRating || 0);
 
   const handleClick = (e) => {
     // Não virar se clicou em um botão ou na área de imagem
-    if (e.target.tagName === 'BUTTON' || e.target.closest('.image-area')) return;
-    setIsFlipped(!isFlipped);
+    if (e.target.tagName === 'BUTTON' || e.target.closest('.image-area') || e.target.closest('.MuiRating-root')) return;
+    
+    if (onFlip) {
+      onFlip();
+    } else {
+      setIsFlipped(!isFlipped);
+    }
   };
 
-  const handleDifficultyRating = (difficulty, e) => {
-    e.stopPropagation();
-    console.log(`Flashcard ${flashcard.id} avaliado como: ${difficulty}`);
-    // Aqui você pode implementar a lógica de repetição espaçada
-    // Opcional: voltar para frente após avaliação
-    setTimeout(() => {
-      setIsFlipped(false);
-    }, 1000);
+  const handleDifficultyRating = (event, newValue) => {
+    event.stopPropagation();
+    setUserRating(newValue);
+    
+    if (onDifficultyRate) {
+      onDifficultyRate(flashcard.id, newValue);
+    }
+    
+    console.log(`Flashcard ${flashcard.id} avaliado como: ${newValue} estrelas`);
   };
 
   const handleImageUploaded = (imageUrl) => {
@@ -27,125 +67,214 @@ const FlashCardWithImage = ({ flashcard, index, onImageUpdate, showImageUpload =
     }
   };
 
+  const cardHeight = compact ? 300 : 400;
+  const currentFlipped = onFlip ? flipped : isFlipped;
+
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case 'easy': return 'success';
+      case 'medium': return 'warning';
+      case 'hard': return 'error';
+      default: return 'default';
+    }
+  };
+
   return (
-    <div 
-      className="w-full h-80 cursor-pointer"
-      style={{ perspective: '1000px' }}
+    <Box 
+      className="w-full cursor-pointer"
+      style={{ perspective: '1000px', height: cardHeight }}
       onClick={handleClick}
     >
-      <div 
+      <Box 
         className="relative w-full h-full transition-transform duration-600"
         style={{ 
           transformStyle: 'preserve-3d',
-          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          transform: currentFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
           transitionDuration: '0.6s'
         }}
       >
         {/* Frente do Card */}
-        <div 
-          className="absolute inset-0 w-full h-full rounded-lg p-4 bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col"
+        <Card 
+          className="absolute inset-0 w-full h-full shadow-lg hover:shadow-xl transition-shadow"
           style={{ backfaceVisibility: 'hidden' }}
         >
-          <div className="flex justify-between items-start mb-3">
-            <span className="text-xs opacity-80">#{(index + 1).toString().padStart(2, '0')}</span>
-            <div className="text-xs opacity-80">📚</div>
-          </div>
-          
-          <div className="flex-1 flex flex-col justify-center">
-            <h3 className="text-lg font-semibold mb-2 text-center">
-              {flashcard.title || 'Flashcard'}
-            </h3>
-            <p className="text-sm opacity-90 text-center mb-3">
-              {flashcard.question || flashcard.content || 'Pergunta do flashcard'}
-            </p>
-            
-            {/* Área da imagem na frente - movida para abaixo da pergunta */}
-            {flashcard.image_url && (
-              <div className="image-area flex-shrink-0">
-                <ImageZoom 
-                  src={flashcard.image_url} 
-                  alt={flashcard.title || 'Imagem do flashcard'}
-                  className="max-h-32 w-full object-cover rounded"
+          <CardContent className="h-full flex flex-col p-4">
+            {/* Header */}
+            <Box className="flex justify-between items-start mb-3">
+              <Chip 
+                label={`#${(index + 1).toString().padStart(2, '0')}`} 
+                size="small" 
+                variant="outlined"
+              />
+              <Box className="flex gap-1">
+                <Chip 
+                  label={flashcard.difficulty || 'medium'} 
+                  size="small" 
+                  color={getDifficultyColor(flashcard.difficulty)}
                 />
-              </div>
-            )}
+                {flashcard.category && (
+                  <Chip 
+                    label={flashcard.category} 
+                    size="small" 
+                    variant="outlined"
+                  />
+                )}
+              </Box>
+            </Box>
 
-            {/* Upload de imagem (se habilitado) */}
-            {showImageUpload && !flashcard.image_url && (
-              <div className="image-area flex-shrink-0">
-                <ImageUpload 
-                  onImageUploaded={handleImageUploaded}
-                  currentImage={flashcard.image_url}
-                  className="h-24"
-                />
-              </div>
-            )}
-          </div>
-          
-          <div className="flex justify-between items-end mt-3">
-            <span className="text-xs opacity-70">
-              {flashcard.discipline || 'Medicina Geral'}
-            </span>
-            <span className="text-xs opacity-70">Clique para virar</span>
-          </div>
-        </div>
+            {/* Pergunta */}
+            <Box className="flex-1 flex flex-col justify-center">
+              <Typography 
+                variant={compact ? "h6" : "h5"} 
+                className="text-center font-medium mb-4"
+                style={{ 
+                  display: '-webkit-box',
+                  WebkitLineClamp: compact ? 4 : 6,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden'
+                }}
+              >
+                {flashcard.question}
+              </Typography>
+
+              {/* Imagem da pergunta */}
+              {flashcard.questionImage && (
+                <Box className="image-area flex justify-center mb-4">
+                  <ImageZoom 
+                    src={flashcard.questionImage} 
+                    alt="Imagem da pergunta"
+                    className="max-w-full max-h-32 object-contain rounded"
+                  />
+                </Box>
+              )}
+            </Box>
+
+            {/* Footer */}
+            <Box className="flex justify-between items-center">
+              <Tooltip title="Clique para ver a resposta">
+                <IconButton size="small" color="primary">
+                  <Visibility />
+                </IconButton>
+              </Tooltip>
+              
+              <Typography variant="caption" className="text-slate-500">
+                Pergunta
+              </Typography>
+              
+              <Tooltip title="Virar card">
+                <IconButton size="small">
+                  <RotateLeft />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </CardContent>
+        </Card>
 
         {/* Verso do Card */}
-        <div 
-          className="absolute inset-0 w-full h-full rounded-lg p-4 bg-white border-2 border-blue-200 flex flex-col"
+        <Card 
+          className="absolute inset-0 w-full h-full shadow-lg hover:shadow-xl transition-shadow"
           style={{ 
-            transform: 'rotateY(180deg)',
-            backfaceVisibility: 'hidden'
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)'
           }}
         >
-          <div className="flex justify-between items-start mb-3">
-            <span className="text-xs text-gray-500">#{(index + 1).toString().padStart(2, '0')}</span>
-            <div className="text-xs text-gray-500">💡</div>
-          </div>
-          
-          {/* Área da imagem no verso (se diferente da frente) */}
-          {flashcard.answer_image_url && flashcard.answer_image_url !== flashcard.image_url && (
-            <div className="image-area mb-3 flex-shrink-0">
-              <ImageZoom 
-                src={flashcard.answer_image_url} 
-                alt="Imagem da resposta"
-                className="max-h-32 w-full object-cover rounded"
+          <CardContent className="h-full flex flex-col p-4">
+            {/* Header */}
+            <Box className="flex justify-between items-start mb-3">
+              <Chip 
+                label={`#${(index + 1).toString().padStart(2, '0')}`} 
+                size="small" 
+                variant="outlined"
+                color="secondary"
               />
-            </div>
-          )}
-          
-          <div className="flex-1 flex flex-col justify-center">
-            <h3 className="text-lg font-semibold mb-2 text-center text-blue-800">
-              Resposta
-            </h3>
-            <p className="text-sm text-gray-700 text-center">
-              {flashcard.answer || flashcard.back || 'Resposta do flashcard'}
-            </p>
-          </div>
-          
-          <div className="flex justify-center gap-2 mt-4">
-            <button 
-              className="px-3 py-1 bg-green-100 text-green-700 rounded text-xs hover:bg-green-200 transition-colors"
-              onClick={(e) => handleDifficultyRating('easy', e)}
-            >
-              Fácil
-            </button>
-            <button 
-              className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded text-xs hover:bg-yellow-200 transition-colors"
-              onClick={(e) => handleDifficultyRating('medium', e)}
-            >
-              Médio
-            </button>
-            <button 
-              className="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors"
-              onClick={(e) => handleDifficultyRating('hard', e)}
-            >
-              Difícil
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+              <Box className="flex gap-1">
+                <Chip 
+                  label={flashcard.difficulty || 'medium'} 
+                  size="small" 
+                  color={getDifficultyColor(flashcard.difficulty)}
+                />
+                {flashcard.category && (
+                  <Chip 
+                    label={flashcard.category} 
+                    size="small" 
+                    variant="outlined"
+                  />
+                )}
+              </Box>
+            </Box>
+
+            {/* Resposta */}
+            <Box className="flex-1 flex flex-col justify-center">
+              <Typography 
+                variant={compact ? "body1" : "h6"} 
+                className="text-center mb-4"
+                style={{ 
+                  display: '-webkit-box',
+                  WebkitLineClamp: compact ? 6 : 8,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden'
+                }}
+              >
+                {flashcard.answer}
+              </Typography>
+
+              {/* Imagem da resposta */}
+              {flashcard.answerImage && (
+                <Box className="image-area flex justify-center mb-4">
+                  <ImageZoom 
+                    src={flashcard.answerImage} 
+                    alt="Imagem da resposta"
+                    className="max-w-full max-h-32 object-contain rounded"
+                  />
+                </Box>
+              )}
+
+              {/* Upload de imagem (se habilitado) */}
+              {showImageUpload && (
+                <Box className="mt-2">
+                  <ImageUpload onImageUploaded={handleImageUploaded} />
+                </Box>
+              )}
+            </Box>
+
+            {/* Avaliação de Dificuldade */}
+            <Paper className="p-3 bg-slate-50 dark:bg-slate-800">
+              <Typography variant="caption" className="block text-center mb-2">
+                Como você avalia a dificuldade desta questão?
+              </Typography>
+              <Box className="flex justify-center">
+                <Rating
+                  value={userRating}
+                  onChange={handleDifficultyRating}
+                  size="small"
+                  icon={<Star fontSize="inherit" />}
+                  emptyIcon={<StarBorder fontSize="inherit" />}
+                />
+              </Box>
+            </Paper>
+
+            {/* Footer */}
+            <Box className="flex justify-between items-center mt-3">
+              <Tooltip title="Voltar para pergunta">
+                <IconButton size="small" color="secondary">
+                  <VisibilityOff />
+                </IconButton>
+              </Tooltip>
+              
+              <Typography variant="caption" className="text-slate-500">
+                Resposta
+              </Typography>
+              
+              <Tooltip title="Virar card">
+                <IconButton size="small">
+                  <RotateLeft />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    </Box>
   );
 };
 

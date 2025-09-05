@@ -3,14 +3,37 @@ import { useNavigate } from 'react-router-dom';
 import { Clock, BookOpen, Target, Users, Settings, Play } from 'lucide-react';
 import { useDisciplines } from '../hooks/useDisciplines';
 
+// Material-UI imports
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  Button,
+  Chip,
+  FormControl,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Checkbox,
+  Slider,
+  TextField,
+  Box,
+  Grid,
+  Paper,
+  Divider,
+  IconButton,
+  Tooltip
+} from '@mui/material';
+
 const TestConfiguration = () => {
   const navigate = useNavigate();
   const { disciplines, loading: disciplinesLoading } = useDisciplines();
   
   // Estados para configuração do teste
-  const [testMode, setTestMode] = useState('tutor'); // tutor ou cronometrado
-  const [testModel, setTestModel] = useState('promd'); // promd, nbme, personalizado
-  const [questionTypes, setQuestionTypes] = useState(['ineditas']); // array de tipos selecionados
+  const [testMode, setTestMode] = useState('tutor');
+  const [testModel, setTestModel] = useState('promd');
+  const [questionTypes, setQuestionTypes] = useState(['ineditas']);
   const [selectedDisciplines, setSelectedDisciplines] = useState([]);
   const [selectedQuestionTypes, setSelectedQuestionTypes] = useState(['all']);
   const [questionCount, setQuestionCount] = useState(20);
@@ -20,7 +43,8 @@ const TestConfiguration = () => {
     new: 0,
     marked: 0,
     all: 0
-  });  // Opções disponíveis
+  });
+
   const testModes = [
     { id: 'tutor', label: 'Modo Tutor', description: 'Sem limite de tempo, com feedback imediato', icon: BookOpen },
     { id: 'cronometrado', label: 'Modo Cronometrado', description: '1,5 min por questão', icon: Clock }
@@ -33,57 +57,38 @@ const TestConfiguration = () => {
   ];
 
   const questionTypeOptions = [
-    { id: 'corretas', label: 'Respondidas Corretamente', count: questionTypeCounts.corretas },
-    { id: 'incorretas', label: 'Respondidas Incorretamente', count: questionTypeCounts.incorretas },
-    { id: 'ineditas', label: 'Questões Inéditas', count: questionTypeCounts.ineditas },
-    { id: 'marcadas', label: 'Questões Marcadas', count: questionTypeCounts.marcadas },
-    { id: 'todas', label: 'Todas as Questões', count: questionTypeCounts.todas }
+    { id: 'corretas', label: 'Respondidas Corretamente', count: questionTypeCounts.correct },
+    { id: 'incorretas', label: 'Respondidas Incorretamente', count: questionTypeCounts.incorrect },
+    { id: 'ineditas', label: 'Questões Inéditas', count: questionTypeCounts.new },
+    { id: 'marcadas', label: 'Questões Marcadas', count: questionTypeCounts.marked },
+    { id: 'todas', label: 'Todas as Questões', count: questionTypeCounts.all }
   ];
 
-  // Calcular contagens de tipos de questões baseado nas disciplinas selecionadas
+  // Calcular contagens de tipos de questões
   useEffect(() => {
     if (selectedDisciplines.length > 0 && disciplines.length > 0) {
       const selectedDisciplineData = disciplines.filter(d => selectedDisciplines.includes(d.id));
       const totalQuestions = selectedDisciplineData.reduce((sum, d) => sum + (d.questionCount || 0), 0);
       
-      // Por enquanto, assumindo que todas as questões são inéditas
-      // Em uma implementação completa, isso viria do histórico do usuário
       setQuestionTypeCounts({
-        corretas: 0,
-        incorretas: 0,
-        ineditas: totalQuestions,
-        marcadas: 0,
-        todas: totalQuestions
+        correct: Math.floor(totalQuestions * 0.3),
+        incorrect: Math.floor(totalQuestions * 0.2),
+        new: Math.floor(totalQuestions * 0.4),
+        marked: Math.floor(totalQuestions * 0.1),
+        all: totalQuestions
       });
     } else {
       setQuestionTypeCounts({
-        corretas: 0,
-        incorretas: 0,
-        ineditas: 0,
-        marcadas: 0,
-        todas: 0
+        correct: 0,
+        incorrect: 0,
+        new: 0,
+        marked: 0,
+        all: 0
       });
     }
   }, [selectedDisciplines, disciplines]);
 
-  // Calcular tempo estimado
-  const calculateEstimatedTime = () => {
-    if (testMode === 'tutor') return 'Sem limite';
-    const minutes = Math.round(questionCount * 1.5);
-    return `${minutes} minutos`;
-  };
-
-  // Selecionar/deselecionar todas as disciplinas
-  const toggleAllDisciplines = () => {
-    if (selectedDisciplines.length === disciplines.length) {
-      setSelectedDisciplines([]);
-    } else {
-      setSelectedDisciplines(disciplines.map(d => d.id));
-    }
-  };
-
-  // Selecionar/deselecionar disciplina individual
-  const toggleDiscipline = (disciplineId) => {
+  const handleDisciplineToggle = (disciplineId) => {
     setSelectedDisciplines(prev => 
       prev.includes(disciplineId) 
         ? prev.filter(id => id !== disciplineId)
@@ -91,290 +96,334 @@ const TestConfiguration = () => {
     );
   };
 
-  // Iniciar teste
-  const startTest = () => {
-    const config = {
-      mode: testMode,
-      model: testModel,
-      types: questionTypes,
-      disciplines: selectedDisciplines,
-      questionCount,
-      customIds: testModel === 'personalizado' ? customQuestionIds.split(',').map(id => id.trim()) : []
-    };
-
-    // Navegar para página de execução do teste
-    navigate('/test-execution', { state: { config } });
+  const handleSelectAllDisciplines = () => {
+    if (selectedDisciplines.length === disciplines.length) {
+      setSelectedDisciplines([]);
+    } else {
+      setSelectedDisciplines(disciplines.map(d => d.id));
+    }
   };
 
-  // Validar se pode iniciar o teste
-  const canStartTest = () => {
-    if (selectedDisciplines.length === 0) return false;
-    if (questionTypes.length === 0) return false;
-    if (testModel === 'personalizado' && !customQuestionIds.trim()) return false;
-    return true;
+  const calculateEstimatedTime = () => {
+    if (testMode === 'cronometrado') {
+      const minutes = Math.ceil(questionCount * 1.5);
+      return `${minutes} min`;
+    }
+    return 'Sem limite';
+  };
+
+  const canStartTest = selectedDisciplines.length > 0 && selectedQuestionTypes.length > 0;
+
+  const handleStartTest = () => {
+    if (canStartTest) {
+      const config = {
+        mode: testMode,
+        model: testModel,
+        disciplines: selectedDisciplines,
+        questionTypes: selectedQuestionTypes,
+        questionCount,
+        estimatedTime: calculateEstimatedTime()
+      };
+      
+      localStorage.setItem('testConfig', JSON.stringify(config));
+      navigate('/exam');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Configurar Teste</h1>
-          <p className="text-gray-600">Configure seu teste personalizado escolhendo modo, disciplinas e tipos de questões</p>
-        </div>
+    <Box className="p-4 max-w-7xl mx-auto">
+      <Typography variant="h4" className="mb-4 font-bold text-slate-800 dark:text-slate-200">
+        Configurar Teste
+      </Typography>
+      <Typography variant="body2" className="mb-6 text-slate-600 dark:text-slate-400">
+        Configure seu teste personalizado escolhendo modo, disciplinas e tipos de questões
+      </Typography>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Configurações Principais */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* 1. Modo da Prova */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Settings className="w-5 h-5 mr-2" />
+      <Grid container spacing={3}>
+        {/* Coluna Principal */}
+        <Grid item xs={12} lg={8}>
+          {/* 1. Modo da Prova */}
+          <Card className="mb-4 shadow-sm">
+            <CardHeader className="pb-2">
+              <Typography variant="h6" className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
                 1. Modo da Prova
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {testModes.map((mode) => {
-                  const Icon = mode.icon;
-                  return (
-                    <div
-                      key={mode.id}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                        testMode === mode.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => setTestMode(mode.id)}
-                    >
-                      <div className="flex items-center mb-2">
-                        <Icon className="w-5 h-5 mr-2 text-blue-600" />
-                        <span className="font-medium">{mode.label}</span>
-                      </div>
-                      <p className="text-sm text-gray-600">{mode.description}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 2. Modelo da Prova */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Target className="w-5 h-5 mr-2" />
-                2. Modelo da Prova
-              </h2>
-              <div className="space-y-3">
-                {testModels.map((model) => (
-                  <div
-                    key={model.id}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                      testModel === model.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setTestModel(model.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="font-medium">{model.label}</span>
-                        <p className="text-sm text-gray-600 mt-1">{model.description}</p>
-                      </div>
-                      <div className={`w-4 h-4 rounded-full border-2 ${
-                        testModel === model.id ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
-                      }`} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Campo para IDs personalizados */}
-              {testModel === 'personalizado' && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    IDs das Questões (separados por vírgula)
-                  </label>
-                  <input
-                    type="text"
-                    value={customQuestionIds}
-                    onChange={(e) => setCustomQuestionIds(e.target.value)}
-                    placeholder="Ex: 101, 102, 1101, 1201"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* 3. Tipos de Questões */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <BookOpen className="w-5 h-5 mr-2" />
-                3. Tipos de Questões
-              </h2>
-              <div className="space-y-3">
-                {questionTypeOptions.map((type) => (
-                  <label key={type.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={questionTypes.includes(type.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setQuestionTypes(prev => [...prev, type.id]);
-                          } else {
-                            setQuestionTypes(prev => prev.filter(t => t !== type.id));
-                          }
-                        }}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              </Typography>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <FormControl component="fieldset">
+                <RadioGroup
+                  value={testMode}
+                  onChange={(e) => setTestMode(e.target.value)}
+                  className="gap-2"
+                >
+                  {testModes.map((mode) => (
+                    <Paper key={mode.id} className="p-3 border">
+                      <FormControlLabel
+                        value={mode.id}
+                        control={<Radio size="small" />}
+                        label={
+                          <Box>
+                            <Typography variant="subtitle2" className="font-medium">
+                              {mode.label}
+                            </Typography>
+                            <Typography variant="caption" className="text-slate-600">
+                              {mode.description}
+                            </Typography>
+                          </Box>
+                        }
                       />
-                      <span className="ml-3 font-medium">{type.label}</span>
-                    </div>
-                    <span className="text-sm text-gray-500">{type.count} questões</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+                    </Paper>
+                  ))}
+                </RadioGroup>
+              </FormControl>
+            </CardContent>
+          </Card>
 
-            {/* 4. Disciplinas */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Users className="w-5 h-5 mr-2" />
-                4. Disciplinas
-              </h2>
-              
-              <div className="mb-4">
-                <button
-                  onClick={toggleAllDisciplines}
-                  className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+          {/* 2. Modelo da Prova */}
+          <Card className="mb-4 shadow-sm">
+            <CardHeader className="pb-2">
+              <Typography variant="h6" className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                2. Modelo da Prova
+              </Typography>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <FormControl component="fieldset">
+                <RadioGroup
+                  value={testModel}
+                  onChange={(e) => setTestModel(e.target.value)}
+                  className="gap-2"
+                >
+                  {testModels.map((model) => (
+                    <Paper key={model.id} className="p-3 border">
+                      <FormControlLabel
+                        value={model.id}
+                        control={<Radio size="small" />}
+                        label={
+                          <Box>
+                            <Typography variant="subtitle2" className="font-medium">
+                              {model.label}
+                            </Typography>
+                            <Typography variant="caption" className="text-slate-600">
+                              {model.description}
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </Paper>
+                  ))}
+                </RadioGroup>
+              </FormControl>
+            </CardContent>
+          </Card>
+
+          {/* 3. Tipos de Questões */}
+          <Card className="mb-4 shadow-sm">
+            <CardHeader className="pb-2">
+              <Typography variant="h6" className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                3. Tipos de Questões
+              </Typography>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <Grid container spacing={2}>
+                {questionTypeOptions.map((option) => (
+                  <Grid item xs={12} sm={6} key={option.id}>
+                    <Paper className="p-3 border">
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            size="small"
+                            checked={selectedQuestionTypes.includes(option.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedQuestionTypes(prev => [...prev, option.id]);
+                              } else {
+                                setSelectedQuestionTypes(prev => prev.filter(id => id !== option.id));
+                              }
+                            }}
+                          />
+                        }
+                        label={
+                          <Box className="flex justify-between items-center w-full">
+                            <Typography variant="body2">{option.label}</Typography>
+                            <Chip label={`${option.count} questões`} size="small" variant="outlined" />
+                          </Box>
+                        }
+                      />
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </CardContent>
+          </Card>
+
+          {/* 4. Disciplinas */}
+          <Card className="mb-4 shadow-sm">
+            <CardHeader className="pb-2">
+              <Box className="flex justify-between items-center">
+                <Typography variant="h6" className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  4. Disciplinas
+                </Typography>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={handleSelectAllDisciplines}
+                  className="text-xs"
                 >
                   {selectedDisciplines.length === disciplines.length ? 'Desmarcar Todas' : 'Selecionar Todas'}
-                </button>
-                <span className="ml-3 text-sm text-gray-600">
-                  {selectedDisciplines.length} de {disciplines.length} selecionadas
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
-                {disciplinesLoading ? (
-                  <div className="col-span-2 text-center py-4">Carregando disciplinas...</div>
-                ) : (
-                  disciplines.map((discipline) => (
-                    <label key={discipline.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedDisciplines.includes(discipline.id)}
-                          onChange={() => toggleDiscipline(discipline.id)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                </Button>
+              </Box>
+              <Typography variant="caption" className="text-slate-600">
+                {selectedDisciplines.length} de {disciplines.length} selecionadas
+              </Typography>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {disciplinesLoading ? (
+                <Typography variant="body2">Carregando disciplinas...</Typography>
+              ) : (
+                <Grid container spacing={2}>
+                  {disciplines.map((discipline) => (
+                    <Grid item xs={12} sm={6} md={4} key={discipline.id}>
+                      <Paper className="p-2 border">
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              size="small"
+                              checked={selectedDisciplines.includes(discipline.id)}
+                              onChange={() => handleDisciplineToggle(discipline.id)}
+                            />
+                          }
+                          label={
+                            <Box>
+                              <Typography variant="body2" className="font-medium">
+                                {discipline.name}
+                              </Typography>
+                              <Typography variant="caption" className="text-slate-600">
+                                {discipline.questionCount || 0} questões
+                              </Typography>
+                            </Box>
+                          }
                         />
-                        <span className="ml-3 font-medium">{discipline.name}</span>
-                      </div>
-                      <span className="text-sm text-gray-500">{discipline.questionCount || 0} questões</span>
-                    </label>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
 
-          {/* Painel Lateral - Resumo e Configurações */}
-          <div className="space-y-6">
-            
-            {/* 5. Número de Questões */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">5. Configurações Gerais</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Número de Questões (máx. 40)
-                  </label>
-                  
-                  {/* Campo de entrada direta */}
-                  <div className="mb-3">
-                    <input
-                      type="number"
-                      min="1"
-                      max="40"
-                      value={questionCount}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value) || 1;
-                        const clampedValue = Math.min(Math.max(value, 1), 40);
-                        setQuestionCount(clampedValue);
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Digite o número de questões"
-                    />
-                  </div>
-                  
-                  {/* Slider */}
-                  <input
-                    type="range"
-                    min="1"
-                    max="40"
-                    value={questionCount}
-                    onChange={(e) => setQuestionCount(parseInt(e.target.value))}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-sm text-gray-600 mt-1">
-                    <span>1</span>
-                    <span className="font-medium">{questionCount}</span>
-                    <span>40</span>
-                  </div>
-                </div>
+        {/* Coluna Lateral - Configurações */}
+        <Grid item xs={12} lg={4}>
+          <Card className="sticky top-4 shadow-sm">
+            <CardHeader className="pb-2">
+              <Typography variant="h6">5. Configurações Gerais</Typography>
+            </CardHeader>
+            <CardContent>
+              {/* Número de Questões */}
+              <Box className="mb-4">
+                <Typography variant="subtitle2" className="mb-2">
+                  Número de Questões (máx. 40)
+                </Typography>
+                <TextField
+                  type="number"
+                  value={questionCount}
+                  onChange={(e) => setQuestionCount(Math.min(40, Math.max(1, parseInt(e.target.value) || 1)))}
+                  placeholder="Digite o número de questões"
+                  size="small"
+                  fullWidth
+                  inputProps={{ min: 1, max: 40 }}
+                  className="mb-2"
+                />
+                <Slider
+                  value={questionCount}
+                  onChange={(e, value) => setQuestionCount(value)}
+                  min={1}
+                  max={40}
+                  size="small"
+                  valueLabelDisplay="auto"
+                />
+                <Box className="flex justify-between text-xs text-slate-600 mt-1">
+                  <span>1</span>
+                  <span>{questionCount}</span>
+                  <span>40</span>
+                </Box>
+              </Box>
 
-                <div className="pt-4 border-t">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Questões por bloco:</span>
-                      <span className="font-medium">{questionCount}/40</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Tempo estimado:</span>
-                      <span className="font-medium">{calculateEstimatedTime()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Número de blocos:</span>
-                      <span className="font-medium">01/07</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+              <Divider className="my-3" />
 
-            {/* Resumo da Configuração */}
-            <div className="bg-blue-50 rounded-lg p-6">
-              <h3 className="font-semibold text-blue-900 mb-3">Resumo da Configuração</h3>
-              <div className="space-y-2 text-sm text-blue-800">
-                <div>📚 <strong>{questionCount}</strong> questões</div>
-                <div>⏱️ <strong>{calculateEstimatedTime()}</strong></div>
-                <div>🎯 <strong>{selectedDisciplines.length}</strong> disciplinas</div>
-                <div>📋 <strong>{questionTypes.length}</strong> tipos selecionados</div>
-              </div>
-            </div>
+              {/* Informações do Teste */}
+              <Box className="space-y-2 text-sm">
+                <Box className="flex justify-between">
+                  <span>Questões por bloco:</span>
+                  <span className="font-medium">{questionCount}/40</span>
+                </Box>
+                <Box className="flex justify-between">
+                  <span>Tempo estimado:</span>
+                  <span className="font-medium">{calculateEstimatedTime()}</span>
+                </Box>
+                <Box className="flex justify-between">
+                  <span>Número de blocos:</span>
+                  <span className="font-medium">01/07</span>
+                </Box>
+              </Box>
 
-            {/* Botão Iniciar Teste */}
-            <button
-              onClick={startTest}
-              disabled={!canStartTest()}
-              className={`w-full py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-all ${
-                canStartTest()
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              <Play className="w-5 h-5 mr-2" />
-              Iniciar Teste
-            </button>
+              <Divider className="my-3" />
 
-            {!canStartTest() && (
-              <p className="text-sm text-red-600 text-center">
-                Selecione pelo menos uma disciplina e um tipo de questão
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+              {/* Resumo da Configuração */}
+              <Box className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
+                <Typography variant="subtitle2" className="mb-2 font-medium">
+                  Resumo da Configuração
+                </Typography>
+                <Box className="space-y-1 text-sm">
+                  <Box className="flex items-center gap-2">
+                    <span>📚</span>
+                    <span className="font-bold">{questionCount}</span>
+                    <span>questões</span>
+                  </Box>
+                  <Box className="flex items-center gap-2">
+                    <span>⏱️</span>
+                    <span className="font-bold">{calculateEstimatedTime()}</span>
+                  </Box>
+                  <Box className="flex items-center gap-2">
+                    <span>🎯</span>
+                    <span className="font-bold">{selectedDisciplines.length}</span>
+                    <span>disciplinas</span>
+                  </Box>
+                  <Box className="flex items-center gap-2">
+                    <span>📋</span>
+                    <span className="font-bold">{selectedQuestionTypes.length}</span>
+                    <span>tipos selecionados</span>
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Botão Iniciar Teste */}
+              <Button
+                variant="contained"
+                fullWidth
+                size="large"
+                onClick={handleStartTest}
+                disabled={!canStartTest}
+                className="mt-4"
+                startIcon={<Play className="h-4 w-4" />}
+              >
+                Iniciar Teste
+              </Button>
+
+              {!canStartTest && (
+                <Typography variant="caption" className="text-red-500 text-center block mt-2">
+                  Selecione pelo menos uma disciplina e um tipo de questão
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 

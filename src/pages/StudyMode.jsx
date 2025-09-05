@@ -16,8 +16,29 @@ import {
   CheckCircle,
   Grid3X3,
   List,
-  Eye
+  Eye,
+  Play
 } from 'lucide-react';
+
+// Material-UI imports
+import {
+  Box,
+  Container,
+  Grid2 as Grid,
+  Typography,
+  Paper,
+  Chip,
+  IconButton,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select as MuiSelect,
+  ToggleButton,
+  ToggleButtonGroup,
+  LinearProgress,
+  Fab,
+  Tooltip
+} from '@mui/material';
 
 export const StudyMode = () => {
   const { flashcards, loading, updateProgress } = useFlashcards();
@@ -26,8 +47,8 @@ export const StudyMode = () => {
   // Estados do modo estudo
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filteredFlashcards, setFilteredFlashcards] = useState([]);
-  const [viewMode, setViewMode] = useState('study'); // 'grid', 'list', 'study'
-  const [cardFlipped, setCardFlipped] = useState(false); // Controlar se o card atual está virado
+  const [viewMode, setViewMode] = useState('study');
+  const [cardFlipped, setCardFlipped] = useState(false);
   const [filters, setFilters] = useState({
     difficulty: 'all',
     category: 'all',
@@ -42,49 +63,52 @@ export const StudyMode = () => {
 
   // Filtrar flashcards baseado nos filtros selecionados
   useEffect(() => {
-    console.log('🔍 Aplicando filtros:', filters);
-    console.log('📚 Total flashcards:', flashcards.length);
-    
     let filtered = [...flashcards];
 
     if (filters.difficulty !== 'all') {
-      filtered = filtered.filter(card => {
-        const cardDifficulty = card.difficulty?.toLowerCase();
-        const filterDifficulty = filters.difficulty.toLowerCase();
-        return cardDifficulty === filterDifficulty;
-      });
+      filtered = filtered.filter(card => card.difficulty === filters.difficulty);
     }
 
     if (filters.category !== 'all') {
-      filtered = filtered.filter(card => {
-        const cardTags = card.tags || [];
-        const cardCategory = card.category?.toLowerCase() || '';
-        const filterCategory = filters.category.toLowerCase();
-        
-        return cardTags.some(tag => tag.toLowerCase().includes(filterCategory)) ||
-               cardCategory.includes(filterCategory);
-      });
+      filtered = filtered.filter(card => card.category === filters.category);
     }
 
     if (filters.status !== 'all') {
-      // Para status "new", mostrar todos os flashcards (já que não temos sistema de progresso ainda)
-      if (filters.status === 'new') {
-        // Manter todos os flashcards
-      } else {
-        // Para outros status, filtrar baseado em lógica futura
-        filtered = filtered.filter(card => {
-          // Por enquanto, mostrar todos para "review" e "mastered"
-          return true;
-        });
-      }
+      filtered = filtered.filter(card => {
+        switch (filters.status) {
+          case 'new': return !card.studied;
+          case 'reviewed': return card.studied;
+          case 'difficult': return card.difficulty === 'hard';
+          default: return true;
+        }
+      });
     }
 
-    console.log('✅ Flashcards filtrados:', filtered.length);
     setFilteredFlashcards(filtered);
     setCurrentIndex(0);
   }, [flashcards, filters]);
 
-  // Iniciar sessão de estudo
+  const currentCard = filteredFlashcards[currentIndex];
+  const progress = filteredFlashcards.length > 0 ? ((currentIndex + 1) / filteredFlashcards.length) * 100 : 0;
+
+  const handleNext = () => {
+    if (currentIndex < filteredFlashcards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setCardFlipped(false);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      setCardFlipped(false);
+    }
+  };
+
+  const handleFlip = () => {
+    setCardFlipped(!cardFlipped);
+  };
+
   const startStudySession = () => {
     setStudySession({
       startTime: new Date(),
@@ -94,484 +118,320 @@ export const StudyMode = () => {
     });
   };
 
-  // Finalizar sessão de estudo
   const endStudySession = () => {
-    const duration = studySession.startTime ? 
-      Math.round((new Date() - studySession.startTime) / 1000 / 60) : 0;
-    
-    alert(`Sessão finalizada!\n\nTempo: ${duration} minutos\nCards estudados: ${studySession.cardsStudied}\nAcertos: ${studySession.correctAnswers}/${studySession.cardsStudied}`);
-    
-    setStudySession({
-      startTime: null,
-      cardsStudied: 0,
-      correctAnswers: 0,
-      sessionActive: false
-    });
-  };
-
-  // Navegar para próximo flashcard
-  const nextCard = () => {
-    if (currentIndex < filteredFlashcards.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      setCardFlipped(false); // Resetar para mostrar pergunta primeiro
-    }
-  };
-
-  // Navegar para flashcard anterior
-  const previousCard = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-      setCardFlipped(false); // Resetar para mostrar pergunta primeiro
-    }
-  };
-
-  // Função para virar o card atual
-  const flipCard = () => {
-    setCardFlipped(!cardFlipped);
-  };
-
-  // Registrar progresso do flashcard
-  const handleDifficultyRating = async (difficulty) => {
-    const currentCard = filteredFlashcards[currentIndex];
-    if (!currentCard) return;
-
-    // Atualizar progresso no banco
-    const progressData = {
-      difficulty_rating: difficulty,
-      times_studied: (currentCard.user_progress?.[0]?.times_studied || 0) + 1,
-      mastery_level: difficulty === 'easy' ? 
-        Math.min((currentCard.user_progress?.[0]?.mastery_level || 0) + 2, 10) :
-        difficulty === 'medium' ? 
-        Math.min((currentCard.user_progress?.[0]?.mastery_level || 0) + 1, 10) :
-        Math.max((currentCard.user_progress?.[0]?.mastery_level || 0) - 1, 0)
-    };
-
-    await updateProgress(currentCard.id, progressData);
-
-    // Atualizar estatísticas da sessão
     setStudySession(prev => ({
       ...prev,
-      cardsStudied: prev.cardsStudied + 1,
-      correctAnswers: prev.correctAnswers + (difficulty === 'easy' ? 1 : 0)
+      sessionActive: false
     }));
-
-    // Avançar automaticamente para o próximo card
-    setTimeout(() => {
-      nextCard();
-    }, 1000);
   };
 
-  // Resetar filtros
-  const resetFilters = () => {
-    setFilters({
-      difficulty: 'all',
-      category: 'all',
-      status: 'all'
-    });
-  };
-
-  // Obter categorias únicas
-  const categories = [...new Set(flashcards.map(card => 
-    card.discipline || card.category || 'Geral'
-  ))];
-
-  const currentCard = filteredFlashcards[currentIndex];
+  const categories = [...new Set(flashcards.map(card => card.category))].filter(Boolean);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando flashcards...</p>
-        </div>
-      </div>
+      <Container maxWidth="lg" className="py-8">
+        <Box className="text-center">
+          <Typography variant="h6">Carregando flashcards...</Typography>
+          <LinearProgress className="mt-4" />
+        </Box>
+      </Container>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header com controles */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-blue-600" />
-              Flashcards
-            </h1>
-            
-            <div className="flex items-center gap-3">
-              {/* Botões de modo de visualização */}
-              <div className="flex bg-gray-100 rounded-lg p-1">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="h-8 px-3"
-                >
-                  <Grid3X3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="h-8 px-3"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'study' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('study')}
-                  className="h-8 px-3"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-              </div>
+    <Container maxWidth="lg" className="py-4">
+      {/* Header */}
+      <Box className="mb-6">
+        <Typography variant="h4" className="font-bold mb-2">
+          📚 Flashcards
+        </Typography>
+        <Typography variant="body1" className="text-slate-600 dark:text-slate-400">
+          Estude com flashcards interativos e acompanhe seu progresso
+        </Typography>
+      </Box>
 
-              {viewMode === 'study' && !studySession.sessionActive ? (
-                <Button onClick={startStudySession} className="bg-green-600 hover:bg-green-700">
-                  <Clock className="h-4 w-4 mr-2" />
-                  Iniciar Sessão
-                </Button>
-              ) : viewMode === 'study' && studySession.sessionActive ? (
-                <Button onClick={endStudySession} variant="outline" className="border-red-200 text-red-600 hover:bg-red-50">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Finalizar Sessão
-                </Button>
-              ) : null}
-            </div>
-          </div>
-
-          {/* Estatísticas da sessão */}
-          {studySession.sessionActive && (
-            <Card className="mb-4">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-4">
-                    <span className="text-gray-600">
-                      Tempo: {studySession.startTime ? 
-                        Math.round((new Date() - studySession.startTime) / 1000 / 60) : 0} min
-                    </span>
-                    <span className="text-gray-600">
-                      Cards: {studySession.cardsStudied}
-                    </span>
-                    <span className="text-gray-600">
-                      Acertos: {studySession.correctAnswers}/{studySession.cardsStudied}
-                    </span>
-                  </div>
-                  <div className="text-blue-600 font-medium">
-                    {currentIndex + 1} de {filteredFlashcards.length}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+      {/* Controles e Filtros */}
+      <Paper className="p-4 mb-6">
+        <Grid container spacing={3} alignItems="center">
+          {/* Modo de Visualização */}
+          <Grid xs={12} sm={6} md={3}>
+            <Typography variant="subtitle2" className="mb-2">Modo de Visualização</Typography>
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={(e, newMode) => newMode && setViewMode(newMode)}
+              size="small"
+              fullWidth
+            >
+              <ToggleButton value="study">
+                <Eye className="h-4 w-4 mr-1" />
+                Estudo
+              </ToggleButton>
+              <ToggleButton value="grid">
+                <Grid3X3 className="h-4 w-4 mr-1" />
+                Grade
+              </ToggleButton>
+              <ToggleButton value="list">
+                <List className="h-4 w-4 mr-1" />
+                Lista
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Grid>
 
           {/* Filtros */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm font-medium text-gray-700">Filtros:</span>
-                </div>
-                
-                <Select value={filters.difficulty} onValueChange={(value) => 
-                  setFilters(prev => ({ ...prev, difficulty: value }))
-                }>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Dificuldade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="1">Fácil</SelectItem>
-                    <SelectItem value="2">Médio</SelectItem>
-                    <SelectItem value="3">Difícil</SelectItem>
-                  </SelectContent>
-                </Select>
+          <Grid xs={12} sm={6} md={3}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Dificuldade</InputLabel>
+              <MuiSelect
+                value={filters.difficulty}
+                label="Dificuldade"
+                onChange={(e) => setFilters(prev => ({ ...prev, difficulty: e.target.value }))}
+              >
+                <MenuItem value="all">Todas</MenuItem>
+                <MenuItem value="easy">Fácil</MenuItem>
+                <MenuItem value="medium">Médio</MenuItem>
+                <MenuItem value="hard">Difícil</MenuItem>
+              </MuiSelect>
+            </FormControl>
+          </Grid>
 
-                <Select value={filters.category} onValueChange={(value) => 
-                  setFilters(prev => ({ ...prev, category: value }))
-                }>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={filters.status} onValueChange={(value) => 
-                  setFilters(prev => ({ ...prev, status: value }))
-                }>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="new">Novos</SelectItem>
-                    <SelectItem value="review">Revisão</SelectItem>
-                    <SelectItem value="mastered">Dominados</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Button variant="outline" size="sm" onClick={resetFilters}>
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  Limpar
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Área principal - diferentes modos de visualização */}
-        {filteredFlashcards.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Target className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Nenhum flashcard encontrado
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Ajuste os filtros ou adicione novos flashcards para começar a estudar.
-              </p>
-              <Button onClick={resetFilters} variant="outline">
-                Limpar Filtros
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            {/* Modo Grid */}
-            {viewMode === 'grid' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredFlashcards.map((flashcard, index) => (
-                  <div key={flashcard.id} className="h-80">
-                    <FlashCardWithImage
-                      flashcard={flashcard}
-                      index={index}
-                      onImageUpdate={() => {}}
-                      showImageUpload={false}
-                    />
-                  </div>
+          <Grid xs={12} sm={6} md={3}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Categoria</InputLabel>
+              <MuiSelect
+                value={filters.category}
+                label="Categoria"
+                onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
+              >
+                <MenuItem value="all">Todas</MenuItem>
+                {categories.map(category => (
+                  <MenuItem key={category} value={category}>{category}</MenuItem>
                 ))}
-              </div>
-            )}
+              </MuiSelect>
+            </FormControl>
+          </Grid>
 
-            {/* Modo Lista */}
-            {viewMode === 'list' && (
-              <div className="space-y-4">
-                {filteredFlashcards.map((flashcard, index) => (
-                  <Card key={flashcard.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <span className="text-blue-600 font-semibold">#{index + 1}</span>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 mb-2">
-                            {flashcard.title || 'Flashcard'}
-                          </h3>
-                          <p className="text-gray-600 mb-2">
-                            {flashcard.question || flashcard.content || 'Pergunta do flashcard'}
-                          </p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <span>{flashcard.discipline || 'Medicina Geral'}</span>
-                            {flashcard.difficulty && (
-                              <span className="px-2 py-1 bg-gray-100 rounded text-xs">
-                                Nível {flashcard.difficulty}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        {flashcard.image_url && (
-                          <div className="flex-shrink-0">
-                            <img 
-                              src={flashcard.image_url} 
-                              alt={flashcard.title}
-                              className="w-16 h-16 object-cover rounded"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+          <Grid xs={12} sm={6} md={3}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Status</InputLabel>
+              <MuiSelect
+                value={filters.status}
+                label="Status"
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+              >
+                <MenuItem value="all">Todos</MenuItem>
+                <MenuItem value="new">Novos</MenuItem>
+                <MenuItem value="reviewed">Revisados</MenuItem>
+                <MenuItem value="difficult">Difíceis</MenuItem>
+              </MuiSelect>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </Paper>
 
-            {/* Modo Estudo Individual */}
-            {viewMode === 'study' && currentCard && (
-              <div className="space-y-6">
-                {/* Flashcard principal */}
-                <div className="flex justify-center">
-                  <div className="w-full max-w-md">
-                    <div 
-                      className="w-full h-80 cursor-pointer"
-                      style={{ perspective: '1000px' }}
-                      onClick={flipCard}
-                    >
-                      <div 
-                        className="relative w-full h-full transition-transform duration-600"
-                        style={{ 
-                          transformStyle: 'preserve-3d',
-                          transform: cardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                          transitionDuration: '0.6s'
-                        }}
-                      >
-                        {/* Frente do Card - Pergunta */}
-                        <div 
-                          className="absolute inset-0 w-full h-full rounded-lg p-4 bg-gradient-to-br from-blue-600 to-blue-800 text-white flex flex-col"
-                          style={{ backfaceVisibility: 'hidden' }}
-                        >
-                          <div className="flex justify-between items-start mb-3">
-                            <span className="text-xs opacity-80">#{(currentIndex + 1).toString().padStart(2, '0')}</span>
-                            <div className="text-xs opacity-80">📚</div>
-                          </div>
-                          
-                          <div className="flex-1 flex flex-col justify-center">
-                            <h3 className="text-lg font-semibold mb-2 text-center">
-                              {currentCard.title || 'Flashcard'}
-                            </h3>
-                            <p className="text-sm opacity-90 text-center mb-3">
-                              {currentCard.question || currentCard.content || 'Pergunta do flashcard'}
-                            </p>
-                            
-                            {currentCard.image_url && (
-                              <div className="flex-shrink-0 flex justify-center">
-                                <img 
-                                  src={currentCard.image_url} 
-                                  alt={currentCard.title || 'Imagem do flashcard'}
-                                  className="max-h-32 w-auto object-contain rounded"
-                                />
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex justify-between items-end mt-3">
-                            <span className="text-xs opacity-70">
-                              {currentCard.discipline || 'Medicina Geral'}
-                            </span>
-                            <span className="text-xs opacity-70">Clique para ver resposta</span>
-                          </div>
-                        </div>
+      {/* Estatísticas da Sessão */}
+      {studySession.sessionActive && (
+        <Paper className="p-4 mb-6 bg-blue-50 dark:bg-blue-950">
+          <Grid container spacing={2}>
+            <Grid xs={6} sm={3}>
+              <Box className="text-center">
+                <Typography variant="h6" className="font-bold text-blue-600">
+                  {studySession.cardsStudied}
+                </Typography>
+                <Typography variant="caption">Cards Estudados</Typography>
+              </Box>
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <Box className="text-center">
+                <Typography variant="h6" className="font-bold text-green-600">
+                  {studySession.correctAnswers}
+                </Typography>
+                <Typography variant="caption">Acertos</Typography>
+              </Box>
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <Box className="text-center">
+                <Typography variant="h6" className="font-bold text-purple-600">
+                  {studySession.cardsStudied > 0 ? Math.round((studySession.correctAnswers / studySession.cardsStudied) * 100) : 0}%
+                </Typography>
+                <Typography variant="caption">Taxa de Acerto</Typography>
+              </Box>
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <Box className="text-center">
+                <Typography variant="h6" className="font-bold text-orange-600">
+                  {studySession.startTime ? Math.round((new Date() - studySession.startTime) / 60000) : 0}min
+                </Typography>
+                <Typography variant="caption">Tempo de Estudo</Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </Paper>
+      )}
 
-                        {/* Verso do Card - Resposta */}
-                        <div 
-                          className="absolute inset-0 w-full h-full rounded-lg p-4 bg-white border-2 border-blue-200 flex flex-col"
-                          style={{ 
-                            transform: 'rotateY(180deg)',
-                            backfaceVisibility: 'hidden'
-                          }}
-                        >
-                          <div className="flex justify-between items-start mb-3">
-                            <span className="text-xs text-gray-500">#{(currentIndex + 1).toString().padStart(2, '0')}</span>
-                            <div className="text-xs text-gray-500">💡</div>
-                          </div>
-                          
-                          <div className="flex-1 flex flex-col justify-center">
-                            <h3 className="text-lg font-semibold mb-2 text-center text-gray-900">
-                              Resposta
-                            </h3>
-                            <p className="text-sm text-gray-700 text-center mb-4">
-                              {currentCard.answer || currentCard.back_content || 'Resposta do flashcard'}
-                            </p>
-                          </div>
-                          
-                          <div className="flex justify-between items-end mt-3">
-                            <span className="text-xs text-gray-500">
-                              {currentCard.discipline || 'Medicina Geral'}
-                            </span>
-                            <span className="text-xs text-gray-500">Clique para voltar</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+      {/* Conteúdo Principal */}
+      {filteredFlashcards.length === 0 ? (
+        <Paper className="p-8 text-center">
+          <BookOpen className="h-16 w-16 mx-auto text-slate-400 mb-4" />
+          <Typography variant="h6" className="mb-2">Nenhum flashcard encontrado</Typography>
+          <Typography variant="body2" className="text-slate-600 mb-4">
+            Ajuste os filtros ou adicione novos flashcards para começar a estudar
+          </Typography>
+          <Button variant="contained" onClick={() => setFilters({ difficulty: 'all', category: 'all', status: 'all' })}>
+            Limpar Filtros
+          </Button>
+        </Paper>
+      ) : (
+        <>
+          {/* Modo Estudo */}
+          {viewMode === 'study' && (
+            <Box>
+              {/* Progresso */}
+              <Paper className="p-4 mb-4">
+                <Box className="flex justify-between items-center mb-2">
+                  <Typography variant="body2">
+                    Flashcard {currentIndex + 1} de {filteredFlashcards.length}
+                  </Typography>
+                  <Typography variant="body2" className="font-medium">
+                    {Math.round(progress)}%
+                  </Typography>
+                </Box>
+                <LinearProgress variant="determinate" value={progress} className="h-2 rounded" />
+              </Paper>
 
-                {/* Controles de navegação */}
-                <div className="flex items-center justify-between">
-                  <Button 
-                    variant="outline" 
-                    onClick={previousCard}
+              {/* Card Principal */}
+              <Box className="max-w-4xl mx-auto">
+                {currentCard && (
+                  <FlashCardWithImage
+                    flashcard={currentCard}
+                    flipped={cardFlipped}
+                    onFlip={handleFlip}
+                    onNext={handleNext}
+                    onPrevious={handlePrevious}
+                    showNavigation={true}
+                    compact={false}
+                  />
+                )}
+              </Box>
+
+              {/* Controles de Navegação */}
+              <Box className="flex justify-center gap-2 mt-6">
+                <Tooltip title="Anterior">
+                  <IconButton 
+                    onClick={handlePrevious} 
                     disabled={currentIndex === 0}
-                    className="flex items-center gap-2"
+                    size="large"
                   >
-                    <ChevronLeft className="h-4 w-4" />
-                    Anterior
-                  </Button>
+                    <ChevronLeft className="h-6 w-6" />
+                  </IconButton>
+                </Tooltip>
 
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <span>{currentIndex + 1}</span>
-                      <span>/</span>
-                      <span>{filteredFlashcards.length}</span>
-                    </div>
-                    
-                    <Button 
-                      variant="secondary" 
-                      onClick={flipCard}
-                      className="px-6"
-                    >
-                      {cardFlipped ? 'Ver Pergunta' : 'Ver Resposta'}
-                    </Button>
-                  </div>
+                <Tooltip title={cardFlipped ? "Mostrar Pergunta" : "Mostrar Resposta"}>
+                  <IconButton onClick={handleFlip} size="large" color="primary">
+                    <RotateCcw className="h-6 w-6" />
+                  </IconButton>
+                </Tooltip>
 
-                  <Button 
-                    variant="outline" 
-                    onClick={nextCard}
+                <Tooltip title="Próximo">
+                  <IconButton 
+                    onClick={handleNext} 
                     disabled={currentIndex === filteredFlashcards.length - 1}
-                    className="flex items-center gap-2"
+                    size="large"
                   >
-                    Próximo
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+                    <ChevronRight className="h-6 w-6" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>
+          )}
 
-                {/* Botões de avaliação rápida */}
-                {studySession.sessionActive && cardFlipped && (
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-3">
-                          Como foi sua performance neste flashcard?
-                        </p>
-                        <div className="flex justify-center gap-3">
-                      <Button 
-                        onClick={() => handleDifficultyRating('easy')}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        😊 Fácil
-                      </Button>
-                      <Button 
-                        onClick={() => handleDifficultyRating('medium')}
-                        className="bg-yellow-600 hover:bg-yellow-700"
-                      >
-                        🤔 Médio
-                      </Button>
-                      <Button 
-                        onClick={() => handleDifficultyRating('hard')}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        😰 Difícil
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
+          {/* Modo Grade */}
+          {viewMode === 'grid' && (
+            <Grid container spacing={3}>
+              {filteredFlashcards.map((flashcard, index) => (
+                <Grid xs={12} sm={6} md={4} key={flashcard.id}>
+                  <Paper 
+                    className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => {
+                      setCurrentIndex(index);
+                      setViewMode('study');
+                    }}
+                  >
+                    <Typography variant="h6" className="mb-2 line-clamp-2">
+                      {flashcard.question}
+                    </Typography>
+                    <Box className="flex justify-between items-center">
+                      <Chip 
+                        label={flashcard.category} 
+                        size="small" 
+                        variant="outlined"
+                      />
+                      <Chip 
+                        label={flashcard.difficulty} 
+                        size="small" 
+                        color={
+                          flashcard.difficulty === 'easy' ? 'success' :
+                          flashcard.difficulty === 'medium' ? 'warning' : 'error'
+                        }
+                      />
+                    </Box>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+
+          {/* Modo Lista */}
+          {viewMode === 'list' && (
+            <Paper>
+              {filteredFlashcards.map((flashcard, index) => (
+                <Box 
+                  key={flashcard.id}
+                  className="p-4 border-b cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
+                  onClick={() => {
+                    setCurrentIndex(index);
+                    setViewMode('study');
+                  }}
+                >
+                  <Box className="flex justify-between items-start">
+                    <Box className="flex-1">
+                      <Typography variant="subtitle1" className="mb-1">
+                        {flashcard.question}
+                      </Typography>
+                      <Typography variant="body2" className="text-slate-600 line-clamp-2">
+                        {flashcard.answer}
+                      </Typography>
+                    </Box>
+                    <Box className="flex gap-1 ml-4">
+                      <Chip label={flashcard.category} size="small" variant="outlined" />
+                      <Chip 
+                        label={flashcard.difficulty} 
+                        size="small" 
+                        color={
+                          flashcard.difficulty === 'easy' ? 'success' :
+                          flashcard.difficulty === 'medium' ? 'warning' : 'error'
+                        }
+                      />
+                    </Box>
+                  </Box>
+                </Box>
+              ))}
+            </Paper>
+          )}
         </>
-        )}
-      </div>
-    </div>
+      )}
+
+      {/* FAB para Iniciar Sessão */}
+      {!studySession.sessionActive && filteredFlashcards.length > 0 && (
+        <Fab
+          color="primary"
+          onClick={startStudySession}
+          className="fixed bottom-6 right-6"
+        >
+          <Play className="h-6 w-6" />
+        </Fab>
+      )}
+    </Container>
   );
 };
 
